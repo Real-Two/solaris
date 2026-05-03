@@ -11,8 +11,8 @@ import L from 'leaflet';
 
 // ─── Exact aircraft DivIcon from spec ───
 function createPlaneIcon(tier, heading) {
-  const colors = { GREEN: '#10b981', AMBER: '#f59e0b', RED: '#ef4444', CRITICAL: '#9333ea' };
-  const color = colors[tier] || '#10b981';
+  const colors = { GREEN: '#00ff88', AMBER: '#ffaa00', RED: '#ff4444', CRITICAL: '#cc00ff' };
+  const color = colors[tier] || '#00ff88';
   return L.divIcon({
     className: '',
     html: `<div style="transform: rotate(${heading}deg); width:24px; height:24px; pointer-events: auto; filter: drop-shadow(0 0 4px ${color})">
@@ -44,11 +44,11 @@ function MapLegend() {
     legend.onAdd = () => {
       const div = L.DomUtil.create('div', 'map-legend');
       div.innerHTML = `
-        <div style="font-size:10px;font-weight:600;letter-spacing:0.1em;color:#6b7280;margin-bottom:4px;text-transform:uppercase;">Threat Tier</div>
-        <div class="legend-item"><div class="legend-dot" style="background:#10b981;"></div><span style="font-size:11px;">Green — Safe</span></div>
-        <div class="legend-item"><div class="legend-dot" style="background:#f59e0b;"></div><span style="font-size:11px;">Amber — Monitor</span></div>
-        <div class="legend-item"><div class="legend-dot" style="background:#ef4444;"></div><span style="font-size:11px;">Red — At Risk</span></div>
-        <div class="legend-item"><div class="legend-dot" style="background:#9333ea;"></div><span style="font-size:11px;">Critical — Urgent</span></div>
+        <div style="font-size:10px;font-weight:600;letter-spacing:0.1em;color:#a0aec0;margin-bottom:4px;text-transform:uppercase;">Threat Tier</div>
+        <div class="legend-item"><div class="legend-dot" style="background:#00ff88;"></div><span style="font-size:11px;">Green — Safe</span></div>
+        <div class="legend-item"><div class="legend-dot" style="background:#ffaa00;"></div><span style="font-size:11px;">Amber — Monitor</span></div>
+        <div class="legend-item"><div class="legend-dot" style="background:#ff4444;"></div><span style="font-size:11px;">Red — At Risk</span></div>
+        <div class="legend-item"><div class="legend-dot" style="background:#cc00ff;"></div><span style="font-size:11px;">Critical — Urgent</span></div>
       `;
       return div;
     };
@@ -82,21 +82,21 @@ function DemoRouteLines({ selectedAircraft, demoMode }) {
 
   return (
     <>
-      {/* Current route: dashed black/gray */}
+      {/* Current route: dashed white */}
       <Polyline
         positions={[origin, jfk]}
         pathOptions={{
-          color: '#111827',
+          color: '#ffffff',
           opacity: 0.35,
           weight: 1.5,
           dashArray: '8,8',
         }}
       />
-      {/* Deviation route: solid green arc */}
+      {/* Deviation route: solid neon blue arc */}
       <Polyline
         positions={[origin, [58, -30], [45, -55], jfk]}
         pathOptions={{
-          color: '#2d6a4f',
+          color: '#0075ff',
           opacity: 0.8,
           weight: 2,
         }}
@@ -136,11 +136,11 @@ function RouteLines({ aircraft }) {
     <>
       <Polyline
         positions={[pos, destCoords]}
-        pathOptions={{ color: '#111827', opacity: 0.4, weight: 1, dashArray: '6, 6' }}
+        pathOptions={{ color: 'white', opacity: 0.4, weight: 1, dashArray: '6, 6' }}
       />
       <Polyline
         positions={[pos, [midLat, midLon], destCoords]}
-        pathOptions={{ color: '#2d6a4f', opacity: 0.7, weight: 2 }}
+        pathOptions={{ color: '#0075ff', opacity: 0.7, weight: 2 }}
       />
     </>
   );
@@ -161,12 +161,12 @@ function RadiationZones({ alertLevel }) {
       {/* North polar */}
       <Rectangle
         bounds={[[60, -180], [90, 180]]}
-        pathOptions={{ fillColor: '#ef4444', fillOpacity: opacity, stroke: false }}
+        pathOptions={{ fillColor: '#ff4444', fillOpacity: opacity, stroke: false }}
       />
       {/* South polar */}
       <Rectangle
         bounds={[[-90, -180], [-60, 180]]}
-        pathOptions={{ fillColor: '#ef4444', fillOpacity: opacity, stroke: false }}
+        pathOptions={{ fillColor: '#ff4444', fillOpacity: opacity, stroke: false }}
       />
     </>
   );
@@ -207,7 +207,7 @@ export default function MapPanel({ fleet, solar, selectedCallsign, selectedAircr
       id="solaris-map"
     >
       <TileLayer
-        url="https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png"
+        url="https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png"
         attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors &copy; <a href="https://carto.com/attributions">CARTO</a>'
         subdomains="abcd"
         maxZoom={19}

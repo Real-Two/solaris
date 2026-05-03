@@ -3,7 +3,7 @@ import { tierColor, tierClass, displayScore } from '../api';
 
 function SkeletonCard() {
   return (
-    <div className="glass-card rounded-lg p-3 mb-2">
+    <div className="glass-card rounded-lg p-3 mb-2 border border-[rgba(255,255,255,0.05)] bg-[rgba(255,255,255,0.02)]">
       <div className="flex items-center gap-3">
         <div className="skeleton w-1 h-10 rounded" />
         <div className="flex-1">
@@ -21,9 +21,9 @@ function FleetCard({ aircraft, isSelected, onSelect }) {
 
   return (
     <div
-      className={`glass-card rounded-lg cursor-pointer fleet-card overflow-hidden
-        hover:bg-gray-50 transition-colors duration-200
-        ${isSelected ? 'ring-2 ring-[#2d6a4f]/50' : ''}`}
+      className={`glass-card rounded-[12px] cursor-pointer fleet-card overflow-hidden
+        hover:bg-[rgba(255,255,255,0.05)] transition-colors duration-200 border-[rgba(255,255,255,0.05)]
+        ${isSelected ? 'ring-2 ring-[#0075ff]/50 bg-[rgba(255,255,255,0.05)]' : 'bg-[rgba(255,255,255,0.02)]'}`}
       onClick={() => onSelect(aircraft.callsign)}
       role="button"
       tabIndex={0}
@@ -32,17 +32,17 @@ function FleetCard({ aircraft, isSelected, onSelect }) {
       <div className="flex items-stretch">
         {/* Tier Color Bar */}
         <div
-          className="w-1 shrink-0 rounded-l"
-          style={{ backgroundColor: color }}
+          className="w-1.5 shrink-0"
+          style={{ backgroundColor: color, boxShadow: `0 0 10px ${color}` }}
         />
 
         {/* Content */}
         <div className="flex-1 flex items-center justify-between p-3 pl-3 min-w-0">
           <div className="min-w-0">
-            <div className="font-mono text-sm font-bold text-gray-900 truncate">
+            <div className="font-mono text-[13px] font-bold text-white truncate">
               {aircraft.callsign}
             </div>
-            <div className="text-[11px] text-gray-500 font-mono mt-0.5">
+            <div className="text-[11px] text-[#a0aec0] font-mono mt-0.5">
               {aircraft.origin} → {aircraft.dest}
             </div>
           </div>
@@ -50,7 +50,7 @@ function FleetCard({ aircraft, isSelected, onSelect }) {
           <div className="flex items-center gap-3 shrink-0">
             {/* Tier Badge */}
             <span
-              className="text-[9px] font-bold tracking-wider px-1.5 py-0.5 rounded-full"
+              className="text-[9px] font-bold tracking-widest uppercase px-2 py-1 rounded-[6px]"
               style={{
                 backgroundColor: `${color}20`,
                 color: color,
@@ -94,41 +94,41 @@ export default function FleetSidebar({ fleet, loading, selectedCallsign, onSelec
 
   return (
     <div
-      className="shrink-0 flex flex-col border-r border-gray-200 bg-white overflow-hidden"
+      className="shrink-0 flex flex-col border-r border-[rgba(255,255,255,0.05)] bg-[rgba(6,11,40,0.4)] backdrop-blur-3xl overflow-hidden"
       style={{ width: 280 }}
     >
       {/* Header */}
-      <div className="px-4 pt-4 pb-2 shrink-0">
-        <div className="flex items-center justify-between mb-3">
-          <span className="text-[11px] tracking-[0.15em] text-gray-500 uppercase font-semibold">
+      <div className="px-4 pt-5 pb-3 shrink-0 border-b border-[rgba(255,255,255,0.05)]">
+        <div className="flex items-center justify-between mb-4">
+          <span className="text-[11px] tracking-[0.15em] text-[#a0aec0] uppercase font-bold">
             Fleet Monitor
           </span>
-          <span className="font-mono text-[11px] text-[#2d6a4f] bg-[#2d6a4f]/10 px-2 py-0.5 rounded-full">
+          <span className="font-mono text-[11px] text-[#0075ff] font-bold bg-[#0075ff]/20 px-2 py-0.5 rounded-full">
             {aircraft.length}
           </span>
         </div>
 
         {/* Quick-Stat Chips */}
         {!loading && (
-          <div className="flex gap-2 mb-3">
-            <div className="flex items-center gap-1 text-[10px] font-mono bg-red-50 text-red-600 px-2 py-1 rounded-full">
-              <span>🔴</span>
-              <span>{tierCounts.CRITICAL + tierCounts.RED} critical</span>
+          <div className="flex gap-2 mb-2">
+            <div className="flex items-center gap-1 text-[10px] font-mono bg-[rgba(255,68,68,0.1)] text-[#ff4444] font-bold px-2 py-1 rounded-[8px]">
+              <span className="w-1.5 h-1.5 rounded-full bg-[#ff4444] shadow-[0_0_5px_#ff4444]" />
+              <span>{tierCounts.CRITICAL + tierCounts.RED}</span>
             </div>
-            <div className="flex items-center gap-1 text-[10px] font-mono bg-amber-50 text-amber-600 px-2 py-1 rounded-full">
-              <span>🟡</span>
-              <span>{tierCounts.AMBER} amber</span>
+            <div className="flex items-center gap-1 text-[10px] font-mono bg-[rgba(255,170,0,0.1)] text-[#ffaa00] font-bold px-2 py-1 rounded-[8px]">
+              <span className="w-1.5 h-1.5 rounded-full bg-[#ffaa00] shadow-[0_0_5px_#ffaa00]" />
+              <span>{tierCounts.AMBER}</span>
             </div>
-            <div className="flex items-center gap-1 text-[10px] font-mono bg-emerald-50 text-emerald-600 px-2 py-1 rounded-full">
-              <span>🟢</span>
-              <span>{tierCounts.GREEN} safe</span>
+            <div className="flex items-center gap-1 text-[10px] font-mono bg-[rgba(0,255,136,0.1)] text-[#00ff88] font-bold px-2 py-1 rounded-[8px]">
+              <span className="w-1.5 h-1.5 rounded-full bg-[#00ff88] shadow-[0_0_5px_#00ff88]" />
+              <span>{tierCounts.GREEN}</span>
             </div>
           </div>
         )}
       </div>
 
       {/* Scrollable List */}
-      <div className="flex-1 overflow-y-auto px-3 pb-3 space-y-1.5">
+      <div className="flex-1 overflow-y-auto px-3 py-3 space-y-2">
         {loading ? (
           Array.from({ length: 8 }).map((_, i) => <SkeletonCard key={i} />)
         ) : (

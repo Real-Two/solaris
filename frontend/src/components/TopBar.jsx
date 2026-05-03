@@ -29,18 +29,18 @@ export default function TopBar({ solar, fetching, isStale, demoMode, onToggleDem
 
   return (
     <div
-      className={`flex items-center justify-between px-5 h-[56px] shrink-0
-        bg-white border-b border-gray-200 z-20
+      className={`flex items-center justify-between px-6 h-[70px] shrink-0
+        bg-transparent z-20
         ${isCritical ? 'critical-pulse' : ''}`}
     >
       {/* Left: Logo */}
       <div className="flex items-center gap-3">
         <div className="flex items-center gap-2">
           <span
-            className={`w-2 h-2 rounded-full ${isStale ? 'bg-gray-400' : 'bg-[#10b981] pulse-dot'}`}
+            className={`w-2 h-2 rounded-full ${isStale ? 'bg-gray-500' : 'bg-[#0075ff] pulse-dot'}`}
           />
-          <span className="font-sans text-xl font-bold text-gray-900 tracking-tight">
-            Donezo<span className="text-[#10b981]">.</span>
+          <span className="font-sans text-xl font-bold text-white tracking-tight">
+            Donezo<span className="text-[#0075ff]">.</span>
           </span>
         </div>
         <span className="text-[11px] text-[#A0AEC0] italic hidden xl:block">
@@ -49,44 +49,44 @@ export default function TopBar({ solar, fetching, isStale, demoMode, onToggleDem
       </div>
 
       {/* Center: Solar Metrics */}
-      <div className="flex items-center gap-6">
+      <div className="flex items-center gap-6 glass-card px-6 py-2 border-0 shadow-none">
         {fetching && <div className="spin-loader" />}
 
         <div className="flex items-center gap-2">
-          <span className="text-[10px] tracking-widest text-gray-500 uppercase font-semibold">
+          <span className="text-[10px] tracking-widest text-[#a0aec0] uppercase font-semibold">
             Proton Flux
           </span>
           <span
             ref={el => (flashRefs.current.proton_flux_pfu = el)}
-            className="font-mono text-sm font-semibold text-[#2d6a4f] px-1 rounded"
+            className="font-mono text-sm font-bold text-white px-1 rounded"
           >
             {solar ? `${solar.proton_flux_pfu.toFixed(1)} pfu` : '—'}
           </span>
         </div>
 
-        <div className="w-px h-5 bg-gray-200" />
+        <div className="w-px h-5 bg-white/10" />
 
         <div className="flex items-center gap-2">
-          <span className="text-[10px] tracking-widest text-gray-500 uppercase font-semibold">
+          <span className="text-[10px] tracking-widest text-[#a0aec0] uppercase font-semibold">
             Kp Index
           </span>
           <span
             ref={el => (flashRefs.current.kp_index = el)}
-            className="font-mono text-sm font-semibold text-gray-900 px-1 rounded"
+            className="font-mono text-sm font-bold text-white px-1 rounded"
           >
             {solar ? solar.kp_index.toFixed(1) : '—'}
           </span>
         </div>
 
-        <div className="w-px h-5 bg-gray-200" />
+        <div className="w-px h-5 bg-white/10" />
 
         <div className="flex items-center gap-2">
-          <span className="text-[10px] tracking-widest text-gray-500 uppercase font-semibold">
+          <span className="text-[10px] tracking-widest text-[#a0aec0] uppercase font-semibold">
             X-Ray
           </span>
           <span
             ref={el => (flashRefs.current.x_ray_class_raw = el)}
-            className="font-mono text-sm font-semibold text-gray-900 px-1 rounded"
+            className="font-mono text-sm font-bold text-white px-1 rounded"
           >
             {solar?.x_ray_class_raw || '—'}
           </span>
@@ -96,12 +96,12 @@ export default function TopBar({ solar, fetching, isStale, demoMode, onToggleDem
       {/* Right: Alert + Timestamp + Demo Toggle */}
       <div className="flex items-center gap-4">
         <span
-          className={`px-3 py-1 rounded-full text-[11px] font-bold tracking-wider
+          className={`px-3 py-1.5 rounded-[8px] text-[10px] font-bold tracking-wider uppercase
             ${alertColors[alertLevel] || alertColors.GREEN}`}
         >
           {alertLevel}
         </span>
-        <span className="text-[10px] text-gray-500 font-mono font-medium">
+        <span className="text-[11px] text-[#a0aec0] font-mono font-medium">
           {solar?.last_updated
             ? new Date(solar.last_updated).toLocaleTimeString('en-US', {
                 hour: '2-digit',
@@ -116,13 +116,13 @@ export default function TopBar({ solar, fetching, isStale, demoMode, onToggleDem
         <button
           onClick={onToggleDemo}
           id="demo-mode-toggle"
-          className="flex items-center gap-1.5 px-3 py-1.5 rounded-full text-[10px] font-bold
+          className="flex items-center gap-1.5 px-4 py-2 rounded-[12px] text-[10px] font-bold
             tracking-wider uppercase transition-all duration-300 cursor-pointer border"
           style={{
-            background: demoMode ? '#fffbeb' : '#f9fafb',
-            color: demoMode ? '#d97706' : '#6b7280',
-            borderColor: demoMode ? '#fde68a' : '#e5e7eb',
-            boxShadow: demoMode ? '0 0 12px rgba(245, 158, 11, 0.15)' : 'none',
+            background: demoMode ? 'rgba(255, 170, 0, 0.15)' : 'rgba(255,255,255,0.05)',
+            color: demoMode ? '#ffaa00' : '#ffffff',
+            borderColor: demoMode ? 'rgba(255, 170, 0, 0.3)' : 'rgba(255,255,255,0.1)',
+            boxShadow: demoMode ? '0 0 15px rgba(255, 170, 0, 0.2)' : 'none',
           }}
         >
           {/* Satellite Icon */}

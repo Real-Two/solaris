@@ -21,12 +21,12 @@ const TIMELINE = [
 ];
 
 const MARKERS = [
-  { time: 14.0, text: 'Pre-event, nominal conditions', color: '#10b981' },
-  { time: 16.5, text: 'SPE onset detected', color: '#f59e0b' },
-  { time: 17.3, text: 'SOLARIS advisory issued to ICE673', color: '#2d6a4f' },
-  { time: 17.8, text: '⚠ Incident window', color: '#ef4444' },
-  { time: 19.0, text: 'Peak flux 4200 pfu', color: '#9333ea' },
-  { time: 21.0, text: 'Event subsiding', color: '#f59e0b' },
+  { time: 14.0, text: 'Pre-event, nominal conditions', color: '#00ff88' },
+  { time: 16.5, text: 'SPE onset detected', color: '#ffaa00' },
+  { time: 17.3, text: 'SOLARIS advisory issued to ICE673', color: '#0075ff' },
+  { time: 17.8, text: '⚠ Incident window', color: '#ff4444' },
+  { time: 19.0, text: 'Peak flux 4200 pfu', color: '#cc00ff' },
+  { time: 21.0, text: 'Event subsiding', color: '#ffaa00' },
 ];
 
 const EVENT_LOG = [
@@ -73,33 +73,34 @@ function FluxChart({ currentTime, tinted }) {
 
   // Threshold line at 100 pfu
   const thresholdY = pad + plotH - (100 / maxFlux) * plotH;
+  const baseColor = tinted === 'red' ? '#ff4444' : '#0075ff';
 
   return (
     <svg width="100%" height="180" viewBox={`0 0 ${w} ${h}`} preserveAspectRatio="xMidYMid meet">
       {/* Area fill */}
       <defs>
         <linearGradient id={`flux-grad-${tinted}`} x1="0" y1="0" x2="0" y2="1">
-          <stop offset="0%" stopColor={tinted === 'red' ? '#ef4444' : '#2d6a4f'} stopOpacity="0.3" />
-          <stop offset="100%" stopColor={tinted === 'red' ? '#ef4444' : '#2d6a4f'} stopOpacity="0.02" />
+          <stop offset="0%" stopColor={baseColor} stopOpacity="0.4" />
+          <stop offset="100%" stopColor={baseColor} stopOpacity="0.02" />
         </linearGradient>
       </defs>
       <path d={areaPath} fill={`url(#flux-grad-${tinted})`} />
-      <path d={linePath} fill="none" stroke={tinted === 'red' ? '#ef4444' : '#2d6a4f'} strokeWidth="2" opacity="0.8" />
+      <path d={linePath} fill="none" stroke={baseColor} strokeWidth="2" opacity="0.8" style={{ filter: `drop-shadow(0 0 5px ${baseColor})` }} />
 
       {/* Threshold line */}
       <line x1={pad} y1={thresholdY} x2={pad + plotW} y2={thresholdY}
-        stroke="#ef4444" strokeWidth="1" strokeDasharray="4,4" opacity="0.5" />
-      <text x={pad + plotW - 2} y={thresholdY - 4} textAnchor="end" fill="#ef4444" fontSize="9" fontFamily="'IBM Plex Mono'">100 pfu threshold</text>
+        stroke="#ff4444" strokeWidth="1" strokeDasharray="4,4" opacity="0.6" />
+      <text x={pad + plotW - 2} y={thresholdY - 4} textAnchor="end" fill="#ff4444" fontSize="9" fontFamily="'IBM Plex Mono'">100 pfu threshold</text>
 
       {/* Cursor */}
-      <line x1={cursorX} y1={pad} x2={cursorX} y2={pad + plotH} stroke="black" strokeWidth="1" opacity="0.5" />
+      <line x1={cursorX} y1={pad} x2={cursorX} y2={pad + plotH} stroke="rgba(255,255,255,0.3)" strokeWidth="1" />
       <circle cx={cursorX} cy={pad + plotH - (Math.min(getFluxAtTime(currentTime), maxFlux) / maxFlux) * plotH}
-        r="4" fill="#111827" stroke="none" />
+        r="4" fill="#ffffff" stroke="none" style={{ filter: 'drop-shadow(0 0 4px white)' }} />
 
       {/* X axis labels */}
       {[14, 16, 18, 20, 22].map(t => (
         <text key={t} x={pad + ((t - 14) / 8) * plotW} y={h - 5} textAnchor="middle"
-          fill="#6b7280" fontSize="9" fontFamily="'IBM Plex Mono'">{t}:00</text>
+          fill="#a0aec0" fontSize="9" fontFamily="'IBM Plex Mono'">{t}:00</text>
       ))}
     </svg>
   );
@@ -141,25 +142,26 @@ export default function EventReplay() {
     return h + m / 60 <= currentTime;
   });
 
-  const typeColor = { nominal: '#10b981', warning: '#f59e0b', advisory: '#2d6a4f', success: '#10b981', critical: '#ef4444' };
+  const typeColor = { nominal: '#00ff88', warning: '#ffaa00', advisory: '#0075ff', success: '#00ff88', critical: '#ff4444' };
 
   return (
-    <div className="p-6 space-y-5 max-w-[1400px] mx-auto">
+    <div className="p-6 space-y-6 max-w-[1400px] mx-auto h-full overflow-y-auto">
       {/* Title */}
       <div>
-        <h1 className="text-xl font-bold text-gray-900">October 30, 2025 — Solar Proton Event Replay</h1>
-        <p className="text-[13px] text-gray-500 mt-1">JetBlue A320 incident scenario · Demonstrating SOLARIS intervention capability</p>
+        <h1 className="text-[24px] font-bold text-white">October 30, 2025 — Solar Proton Event Replay</h1>
+        <p className="text-[13px] text-[#a0aec0] mt-1">JetBlue A320 incident scenario · Demonstrating SOLARIS intervention capability</p>
       </div>
 
       {/* Scrubber */}
-      <div className="glass-card p-5">
-        <div className="flex items-center gap-4 mb-3">
+      <div className="glass-card p-6">
+        <div className="flex items-center gap-6 mb-4">
           <button onClick={handlePlay}
-            className="w-10 h-10 rounded-xl flex items-center justify-center cursor-pointer transition-all"
+            className="w-12 h-12 rounded-[12px] flex items-center justify-center cursor-pointer transition-all border"
             style={{
-              background: playing ? 'rgba(239,68,68,0.1)' : 'rgba(45,106,79,0.1)',
-              border: `1px solid ${playing ? 'rgba(239,68,68,0.3)' : 'rgba(45,106,79,0.3)'}`,
-              color: playing ? '#ef4444' : '#2d6a4f',
+              background: playing ? 'rgba(255,68,68,0.1)' : 'rgba(0,117,255,0.1)',
+              borderColor: playing ? 'rgba(255,68,68,0.3)' : 'rgba(0,117,255,0.3)',
+              color: playing ? '#ff4444' : '#0075ff',
+              boxShadow: playing ? '0 0 15px rgba(255,68,68,0.2)' : '0 0 15px rgba(0,117,255,0.2)',
             }}>
             {playing ? '⏸' : '▶'}
           </button>
@@ -168,43 +170,45 @@ export default function EventReplay() {
               onChange={e => setCurrentTime(parseFloat(e.target.value))}
               className="replay-slider w-full" />
           </div>
-          <div className="font-mono text-lg font-bold text-gray-900 shrink-0 w-20 text-right">
-            {Math.floor(currentTime)}:{String(Math.round((currentTime % 1) * 60)).padStart(2, '0')} UTC
+          <div className="font-mono text-[22px] font-bold text-white shrink-0 w-[120px] text-right">
+            {Math.floor(currentTime)}:{String(Math.round((currentTime % 1) * 60)).padStart(2, '0')} <span className="text-[14px] text-[#a0aec0]">UTC</span>
           </div>
         </div>
         {/* Marker labels */}
-        <div className="relative h-5 ml-14 mr-20">
+        <div className="relative h-5 ml-[76px] mr-[130px]">
           {MARKERS.map((m, i) => (
-            <div key={i} className="absolute text-[8px] font-mono" style={{
+            <div key={i} className="absolute text-[9px] font-mono font-bold" style={{
               left: `${((m.time - 14) / 8) * 100}%`,
               color: m.color,
               transform: 'translateX(-50%)',
               whiteSpace: 'nowrap',
+              textShadow: `0 0 5px ${m.color}`,
             }}>▼</div>
           ))}
         </div>
-        <div className="flex items-center gap-3 mt-1 ml-14">
-          <span className="font-mono text-sm text-gray-500">Flux:</span>
-          <span className={`font-mono text-lg font-bold ${flux > 100 ? 'text-red-500' : flux > 10 ? 'text-amber-500' : 'text-emerald-500'}`}>
+        <div className="flex items-center gap-3 mt-2 ml-[76px]">
+          <span className="font-mono text-[13px] text-[#a0aec0]">Flux:</span>
+          <span className={`font-mono text-[20px] font-bold ${flux > 100 ? 'text-[#ff4444]' : flux > 10 ? 'text-[#ffaa00]' : 'text-[#00ff88]'}`}
+                style={{ textShadow: `0 0 10px ${flux > 100 ? '#ff4444' : flux > 10 ? '#ffaa00' : '#00ff88'}` }}>
             {flux.toFixed(1)} pfu
           </span>
         </div>
       </div>
 
       {/* Split View */}
-      <div className="grid grid-cols-2 gap-4">
+      <div className="grid grid-cols-2 gap-6">
         {/* WITHOUT SOLARIS */}
-        <div className="p-5 rounded-2xl" style={{ background: 'rgba(239,68,68,0.04)', border: '1px solid rgba(239,68,68,0.12)' }}>
-          <div className="text-[10px] tracking-[0.15em] text-red-500 uppercase font-bold mb-3">WITHOUT SOLARIS</div>
+        <div className="p-6 rounded-[20px]" style={{ background: 'rgba(255,68,68,0.05)', border: '1px solid rgba(255,68,68,0.1)' }}>
+          <div className="text-[11px] tracking-[0.15em] text-[#ff4444] uppercase font-bold mb-4">WITHOUT SOLARIS</div>
           {isIncidentWindow && (
-            <div className="mb-3 p-3 rounded-xl" style={{ background: 'rgba(239,68,68,0.1)', border: '1px solid rgba(239,68,68,0.2)' }}>
-              <span className="text-[12px] font-bold text-red-600">⚠ SEU EVENT — Avionics anomaly detected on ICE673-equivalent</span>
-              <p className="text-[11px] text-gray-600 mt-1">Aircraft at FL390 with no advisory. Crew unaware of elevated radiation.</p>
+            <div className="mb-4 p-4 rounded-[12px]" style={{ background: 'rgba(255,68,68,0.1)', border: '1px solid rgba(255,68,68,0.2)' }}>
+              <span className="text-[13px] font-bold text-[#ff4444]">⚠ SEU EVENT — Avionics anomaly detected on ICE673-equivalent</span>
+              <p className="text-[12px] text-white/80 mt-1">Aircraft at FL390 with no advisory. Crew unaware of elevated radiation.</p>
             </div>
           )}
           {!isIncidentWindow && (
-            <div className="mb-3 p-3 rounded-xl" style={{ background: 'rgba(0,0,0,0.03)' }}>
-              <span className="text-[12px] text-gray-600">
+            <div className="mb-4 p-4 rounded-[12px]" style={{ background: 'rgba(0,0,0,0.2)' }}>
+              <span className="text-[13px] text-[#a0aec0]">
                 {currentTime < 16.5 ? 'No monitoring system active. Standard operations.' : 'Flux rising — no automated detection or advisory system.'}
               </span>
             </div>
@@ -213,17 +217,17 @@ export default function EventReplay() {
         </div>
 
         {/* WITH SOLARIS */}
-        <div className="p-5 rounded-2xl" style={{ background: 'rgba(45,106,79,0.03)', border: '1px solid rgba(45,106,79,0.1)' }}>
-          <div className="text-[10px] tracking-[0.15em] text-[#2d6a4f] uppercase font-bold mb-3">WITH SOLARIS</div>
+        <div className="p-6 rounded-[20px]" style={{ background: 'rgba(0,117,255,0.05)', border: '1px solid rgba(0,117,255,0.1)' }}>
+          <div className="text-[11px] tracking-[0.15em] text-[#0075ff] uppercase font-bold mb-4">WITH SOLARIS</div>
           {isAdvisoryIssued && (
-            <div className="mb-3 p-3 rounded-xl" style={{ background: 'rgba(16,185,129,0.06)', border: '1px solid rgba(16,185,129,0.15)' }}>
-              <span className="text-[12px] font-bold text-emerald-600">✓ Advisory issued — ICE673 descended to FL310</span>
-              <p className="text-[11px] text-gray-600 mt-1">30 minutes before incident window. SEU exposure reduced by 62%.</p>
+            <div className="mb-4 p-4 rounded-[12px]" style={{ background: 'rgba(0,255,136,0.1)', border: '1px solid rgba(0,255,136,0.2)' }}>
+              <span className="text-[13px] font-bold text-[#00ff88]">✓ Advisory issued — ICE673 descended to FL310</span>
+              <p className="text-[12px] text-white/80 mt-1">30 minutes before incident window. SEU exposure reduced by 62%.</p>
             </div>
           )}
           {!isAdvisoryIssued && (
-            <div className="mb-3 p-3 rounded-xl" style={{ background: 'rgba(0,0,0,0.03)' }}>
-              <span className="text-[12px] text-gray-600">
+            <div className="mb-4 p-4 rounded-[12px]" style={{ background: 'rgba(0,0,0,0.2)' }}>
+              <span className="text-[13px] text-[#a0aec0]">
                 {currentTime < 16.5 ? 'SOLARIS monitoring active. All 25 aircraft at GREEN status.' : 'SOLARIS detecting flux anomaly. Preparing advisories for polar-route aircraft.'}
               </span>
             </div>
@@ -233,18 +237,18 @@ export default function EventReplay() {
       </div>
 
       {/* Event Log Timeline */}
-      <div className="glass-card p-5">
-        <div className="text-[10px] tracking-[0.15em] text-gray-500 uppercase font-semibold mb-4">Event Timeline</div>
+      <div className="glass-card p-6 pb-8">
+        <div className="text-[10px] tracking-[0.15em] text-[#a0aec0] uppercase font-bold mb-6">Event Timeline</div>
         <div className="space-y-0">
           {visibleEvents.map((evt, i) => (
-            <div key={i} className="flex gap-4 py-3 border-l-2 pl-4 ml-2"
-              style={{ borderColor: typeColor[evt.type] || '#6b7280' }}>
-              <span className="text-[12px] font-mono font-bold text-gray-500 shrink-0 w-12">{evt.time}</span>
-              <span className="text-[12px] text-gray-900">{evt.text}</span>
+            <div key={i} className="flex gap-6 py-3 border-l-2 pl-5 ml-2 transition-all duration-300"
+              style={{ borderColor: typeColor[evt.type] || '#a0aec0' }}>
+              <span className="text-[13px] font-mono font-bold text-[#a0aec0] shrink-0 w-12 pt-0.5">{evt.time}</span>
+              <span className="text-[13px] text-white leading-relaxed">{evt.text}</span>
             </div>
           ))}
           {visibleEvents.length === 0 && (
-            <div className="text-[12px] text-gray-500 py-4 text-center">Advance the timeline to see events...</div>
+            <div className="text-[13px] text-[#a0aec0] py-6 text-center italic">Advance the timeline to see events...</div>
           )}
         </div>
       </div>

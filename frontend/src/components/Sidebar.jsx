@@ -52,43 +52,43 @@ export default function Sidebar({ isConnected }) {
   return (
     <nav className="nav-sidebar shrink-0 h-full flex flex-col z-30">
       {/* Logo */}
-      <div className="flex items-center justify-center h-16 shrink-0">
+      <div className="flex items-center justify-center h-[70px] shrink-0 border-b border-white/5">
         <svg width="30" height="30" viewBox="0 0 32 32" fill="none">
-          <rect x="4" y="4" width="24" height="24" rx="8" fill="#1b4332" />
+          <rect x="4" y="4" width="24" height="24" rx="8" fill="#0075ff" />
           <path d="M11 16l3 3 7-7" stroke="white" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" />
         </svg>
       </div>
 
       {/* Nav Items */}
-      <div className="flex-1 flex flex-col gap-1 px-2 mt-2">
+      <div className="flex-1 flex flex-col gap-2 px-3 mt-6">
         {NAV_ITEMS.map(item => (
           <NavLink
             key={item.path}
             to={item.path}
             end={item.path === '/'}
             className={({ isActive }) =>
-              `flex items-center gap-3 px-3 py-2.5 rounded-xl transition-all duration-200 group relative
+              `flex items-center gap-3 px-3 py-3 rounded-[12px] transition-all duration-200 group relative
               ${isActive
                 ? 'text-white'
-                : 'text-gray-500 hover:text-gray-900 hover:bg-gray-100'
+                : 'text-[#a0aec0] hover:text-white hover:bg-[rgba(255,255,255,0.05)]'
               }`
             }
             style={({ isActive }) => isActive ? {
-              background: '#1b4332',
-              boxShadow: '0 4px 10px rgba(27, 67, 50, 0.2)',
+              background: '#0075ff',
+              boxShadow: '0 4px 15px rgba(0, 117, 255, 0.4)',
             } : {}}
           >
             <span className="shrink-0 w-5 h-5 flex items-center justify-center">{item.icon}</span>
-            <span className="nav-label text-[13px] font-medium">{item.label}</span>
+            <span className="nav-label text-[13px] font-bold">{item.label}</span>
           </NavLink>
         ))}
       </div>
 
       {/* Connection Status */}
-      <div className="px-3 pb-4 flex items-center gap-2">
-        <span className={`w-2 h-2 rounded-full shrink-0 ${isConnected ? 'bg-[#10b981] pulse-dot' : 'bg-gray-400'}`} />
-        <span className="nav-label text-[10px] font-bold tracking-wider uppercase"
-              style={{ color: isConnected ? '#10b981' : '#6b7280' }}>
+      <div className="px-4 pb-6 flex items-center gap-3">
+        <span className={`w-2.5 h-2.5 rounded-full shrink-0 ${isConnected ? 'bg-[#00ff88] shadow-[0_0_8px_#00ff88] pulse-dot' : 'bg-gray-500'}`} />
+        <span className="nav-label text-[10px] font-bold tracking-widest uppercase"
+              style={{ color: isConnected ? '#00ff88' : '#a0aec0' }}>
           {isConnected ? 'LIVE' : 'OFFLINE'}
         </span>
       </div>
