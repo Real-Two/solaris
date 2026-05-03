@@ -118,17 +118,22 @@ export default function EventReplay() {
       return;
     }
     setPlaying(true);
-    if (currentTime >= 22) setCurrentTime(14);
+    let start = currentTime;
+    if (start >= 22) {
+      setCurrentTime(14);
+      start = 14;
+    }
     intervalRef.current = setInterval(() => {
       setCurrentTime(prev => {
-        if (prev >= 22) {
+        const next = prev + 0.25; // 15 minutes
+        if (next >= 22) {
           clearInterval(intervalRef.current);
           setPlaying(false);
           return 22;
         }
-        return prev + 0.5; // 1 hour every 2 seconds (0.5 per second at 1s interval)
+        return next;
       });
-    }, 1000);
+    }, 800);
   }, [playing, currentTime]);
 
   useEffect(() => () => clearInterval(intervalRef.current), []);
@@ -190,7 +195,7 @@ export default function EventReplay() {
           <span className="font-mono text-[13px] text-[#a0aec0]">Flux:</span>
           <span className={`font-mono text-[20px] font-bold ${flux > 100 ? 'text-[#ff4444]' : flux > 10 ? 'text-[#ffaa00]' : 'text-[#00ff88]'}`}
                 style={{ textShadow: `0 0 10px ${flux > 100 ? '#ff4444' : flux > 10 ? '#ffaa00' : '#00ff88'}` }}>
-            {flux.toFixed(1)} pfu
+             {flux.toFixed(1)} pfu
           </span>
         </div>
       </div>
@@ -198,11 +203,11 @@ export default function EventReplay() {
       {/* Split View */}
       <div className="grid grid-cols-2 gap-6">
         {/* WITHOUT SOLARIS */}
-        <div className="p-6 rounded-[20px]" style={{ background: 'rgba(255,68,68,0.05)', border: '1px solid rgba(255,68,68,0.1)' }}>
+        <div className={`p-6 rounded-[20px] transition-all duration-300 ${isIncidentWindow ? 'shadow-[0_0_30px_rgba(255,68,68,0.4)]' : ''}`} style={{ background: 'rgba(255,68,68,0.05)', border: '1px solid rgba(255,68,68,0.1)' }}>
           <div className="text-[11px] tracking-[0.15em] text-[#ff4444] uppercase font-bold mb-4">WITHOUT SOLARIS</div>
           {isIncidentWindow && (
-            <div className="mb-4 p-4 rounded-[12px]" style={{ background: 'rgba(255,68,68,0.1)', border: '1px solid rgba(255,68,68,0.2)' }}>
-              <span className="text-[13px] font-bold text-[#ff4444]">⚠ SEU EVENT — Avionics anomaly detected on ICE673-equivalent</span>
+            <div className="mb-4 p-4 rounded-[12px] animate-pulse" style={{ background: 'rgba(255,68,68,0.15)', border: '1px solid rgba(255,68,68,0.3)', boxShadow: '0 0 15px rgba(255,68,68,0.3)' }}>
+              <span className="text-[13px] font-bold text-[#ff4444]">⚠ Incident Window</span>
               <p className="text-[12px] text-white/80 mt-1">Aircraft at FL390 with no advisory. Crew unaware of elevated radiation.</p>
             </div>
           )}
@@ -217,11 +222,11 @@ export default function EventReplay() {
         </div>
 
         {/* WITH SOLARIS */}
-        <div className="p-6 rounded-[20px]" style={{ background: 'rgba(0,117,255,0.05)', border: '1px solid rgba(0,117,255,0.1)' }}>
+        <div className={`p-6 rounded-[20px] transition-all duration-300 ${isAdvisoryIssued ? 'shadow-[0_0_30px_rgba(0,255,136,0.3)]' : ''}`} style={{ background: 'rgba(0,117,255,0.05)', border: '1px solid rgba(0,117,255,0.1)' }}>
           <div className="text-[11px] tracking-[0.15em] text-[#0075ff] uppercase font-bold mb-4">WITH SOLARIS</div>
           {isAdvisoryIssued && (
-            <div className="mb-4 p-4 rounded-[12px]" style={{ background: 'rgba(0,255,136,0.1)', border: '1px solid rgba(0,255,136,0.2)' }}>
-              <span className="text-[13px] font-bold text-[#00ff88]">✓ Advisory issued — ICE673 descended to FL310</span>
+            <div className="mb-4 p-4 rounded-[12px] animate-pulse" style={{ background: 'rgba(0,255,136,0.15)', border: '1px solid rgba(0,255,136,0.3)', boxShadow: '0 0 15px rgba(0,255,136,0.3)' }}>
+              <span className="text-[13px] font-bold text-[#00ff88]">✓ SOLARIS Advisory Issued</span>
               <p className="text-[12px] text-white/80 mt-1">30 minutes before incident window. SEU exposure reduced by 62%.</p>
             </div>
           )}

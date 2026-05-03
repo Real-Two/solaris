@@ -18,24 +18,20 @@ export default function App() {
   const [solar, setSolar] = useState(null);
   const [fleet, setFleet] = useState(null);
   const [summary, setSummary] = useState(null);
-  const [selectedCallsign, setSelectedCallsign] = useState(null);
+  const [selectedAircraft, setSelectedAircraft] = useState(null);
   const [loading, setLoading] = useState(true);
   const [fetching, setFetching] = useState(false);
   const [error, setError] = useState(null);
   const [lastFetchTime, setLastFetchTime] = useState(null);
   const [countdown, setCountdown] = useState(30);
   const [dataVersion, setDataVersion] = useState(0);
-  const [demoMode, setDemoMode] = useState(false);
+  const [demoMode, setDemoMode] = useState(true); // Boot into demo mode by default
   const navigate = useNavigate();
 
   const liveDataRef = useRef({ solar: null, fleet: null, summary: null });
   const countdownRef = useRef(null);
   const pollRef = useRef(null);
-
-  const selectedAircraft = useMemo(() => {
-    if (!selectedCallsign || !fleet?.aircraft) return null;
-    return fleet.aircraft.find(a => a.callsign.toUpperCase() === selectedCallsign.toUpperCase()) || null;
-  }, [selectedCallsign, fleet]);
+  const initializedDemoRef = useRef(false);
 
   const refreshAll = useCallback(async () => {
     setFetching(true);
@@ -48,6 +44,11 @@ export default function App() {
         setSolar(solarData);
         setFleet(fleetData);
         setSummary(summaryData);
+        // Ensure selectedAircraft reference updates if live data updates
+        if (selectedAircraft) {
+          const updated = fleetData.aircraft.find(a => a.callsign === selectedAircraft.callsign);
+          if (updated) setSelectedAircraft(updated);
+        }
       }
       setError(null);
       setLastFetchTime(Date.now());
@@ -60,9 +61,28 @@ export default function App() {
       setLoading(false);
       setFetching(false);
     }
-  }, [demoMode]);
+  }, [demoMode, selectedAircraft]);
 
   useEffect(() => { refreshAll(); }, []);
+
+  // Initialize demo mode data
+  useEffect(() => {
+    if (demoMode && !initializedDemoRef.current) {
+      initializedDemoRef.current = true;
+      const liveFleet = liveDataRef.current.fleet || null;
+      const demoFleet = applyDemoOverrides(liveFleet);
+      setSolar(DEMO_SOLAR);
+      setFleet(demoFleet);
+      setSummary(DEMO_SUMMARY);
+      setError(null);
+      setDataVersion(v => v + 1);
+      
+      // Auto-select ICE673 on load in demo mode
+      const ice673 = demoFleet.aircraft.find(a => a.callsign === 'ICE673');
+      if (ice673) setSelectedAircraft(ice673);
+      setLoading(false);
+    }
+  }, [demoMode]);
 
   useEffect(() => {
     if (demoMode) { if (pollRef.current) clearInterval(pollRef.current); return; }
@@ -80,17 +100,22 @@ export default function App() {
       const next = !prev;
       if (next) {
         const liveFleet = liveDataRef.current.fleet || fleet;
+        const demoFleet = applyDemoOverrides(liveFleet);
         setSolar(DEMO_SOLAR);
-        setFleet(liveFleet ? applyDemoOverrides(liveFleet) : null);
+        setFleet(demoFleet);
         setSummary(DEMO_SUMMARY);
         setError(null);
         setDataVersion(v => v + 1);
+        
+        // Auto-select ICE673 when toggling ON
+        const ice673 = demoFleet.aircraft.find(a => a.callsign === 'ICE673');
+        if (ice673) setSelectedAircraft(ice673);
       } else {
         const live = liveDataRef.current;
         setSolar(live.solar);
         setFleet(live.fleet);
         setSummary(live.summary);
-        setSelectedCallsign(null);
+        setSelectedAircraft(null);
         setDataVersion(v => v + 1);
         setTimeout(() => refreshAll(), 100);
       }
@@ -98,24 +123,39 @@ export default function App() {
     });
   }, [fleet, refreshAll]);
 
-  const handleSelectAircraft = useCallback((callsign) => {
-    setSelectedCallsign(prev => prev === callsign ? null : callsign);
-  }, []);
+  const handleSelectAircraft = useCallback((ac) => {
+    // Note: ac can be a callsign (string) from Map or full object from table.
+    // If it's a string (callsign), find the object
+    if (typeof ac === 'string') {
+      const obj = fleet?.aircraft.find(a => a.callsign === ac);
+      setSelectedAircraft(prev => prev?.callsign === ac ? null : (obj || null));
+    } else {
+      setSelectedAircraft(prev => prev?.callsign === ac?.callsign ? null : ac);
+    }
+  }, [fleet]);
 
   // Navigate to map with a selected aircraft
-  const handleNavigateToAircraft = useCallback((callsign) => {
-    setSelectedCallsign(callsign);
+  const handleNavigateToAircraft = useCallback((ac) => {
+    if (typeof ac === 'string') {
+      const obj = fleet?.aircraft.find(a => a.callsign === ac);
+      if (obj) setSelectedAircraft(obj);
+    } else {
+      setSelectedAircraft(ac);
+    }
     navigate('/map');
-  }, [navigate]);
+  }, [navigate, fleet]);
 
   const isStale = !lastFetchTime || (Date.now() - lastFetchTime > 60000);
   const isConnected = !error && !isStale;
+  
+  // Pass selectedCallsign down for components that still expect it
+  const selectedCallsign = selectedAircraft?.callsign || null;
 
   return (
     <div className="relative flex flex-col w-screen h-screen overflow-hidden" style={{ zIndex: 1 }}>
       {/* Top Bar — always visible */}
       <TopBar solar={solar} fetching={fetching} isStale={isStale} demoMode={demoMode} onToggleDemo={handleToggleDemo} />
-      {error && <ErrorBanner />}
+      {error && !demoMode && <ErrorBanner />}
 
       {/* Main: Sidebar + Content */}
       <div className="flex flex-1 min-h-0">

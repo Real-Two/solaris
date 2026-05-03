@@ -72,78 +72,53 @@ function DemoFlyTo({ demoMode }) {
   return null;
 }
 
-// ─── ICE673 Demo Route Lines ───
-function DemoRouteLines({ selectedAircraft, demoMode }) {
-  if (!demoMode) return null;
-  if (!selectedAircraft || selectedAircraft.callsign !== 'ICE673') return null;
+function RouteOverlay({ selectedAircraft, demoMode }) {
+  const map = useMap();
+  const routeLayersRef = useRef([]);
 
-  const origin = [66.1, -25.8];
-  const jfk = [40.6, -73.8];
+  useEffect(() => {
+    // remove existing route layers if any
+    if (routeLayersRef.current) {
+      routeLayersRef.current.forEach(l => map.removeLayer(l));
+      routeLayersRef.current = [];
+    }
 
-  return (
-    <>
-      {/* Current route: dashed white */}
-      <Polyline
-        positions={[origin, jfk]}
-        pathOptions={{
-          color: '#ffffff',
-          opacity: 0.35,
-          weight: 1.5,
-          dashArray: '8,8',
-        }}
-      />
-      {/* Deviation route: solid neon blue arc */}
-      <Polyline
-        positions={[origin, [58, -30], [45, -55], jfk]}
-        pathOptions={{
-          color: '#0075ff',
-          opacity: 0.8,
-          weight: 2,
-        }}
-      />
-    </>
-  );
-}
+    if (!selectedAircraft) return;
 
-// ─── Generic Route Lines (live mode, non-ICE673 demo aircraft) ───
-function RouteLines({ aircraft }) {
-  // Only show for aircraft with deviations
-  if (!aircraft?.deviations?.length) return null;
+    if (selectedAircraft.callsign === 'ICE673' && demoMode) {
+      const current = L.polyline([[66.1,-25.8],[40.6,-73.8]], {color:'#ffffff', weight:1.5, opacity:0.35, dashArray:'8,8'}).addTo(map);
+      const deviation = L.polyline([[66.1,-25.8],[58,-30],[45,-55],[40.6,-73.8]], {color:'#00d4ff', weight:2.5, opacity:0.9}).addTo(map);
+      routeLayersRef.current = [current, deviation];
+    } else if (selectedAircraft.deviations?.length > 0) {
+      // Generic route for other aircraft with deviations
+      const AIRPORT_COORDS = {
+        MAD: [40.47, -3.56], JFK: [40.64, -73.78], LHR: [51.47, -0.46],
+        ORD: [41.97, -87.91], CDG: [49.01, 2.55], LAX: [33.94, -118.41],
+        FRA: [50.03, 8.57], YYZ: [43.68, -79.63], DXB: [25.25, 55.36],
+        SYD: [-33.95, 151.18], SIN: [1.36, 103.99], LGW: [51.15, -0.19],
+        FCO: [41.80, 12.25], STN: [51.89, 0.26], AGP: [36.67, -4.49],
+        BCN: [41.30, 2.08], PMI: [39.55, 2.74], EWR: [40.69, -74.17],
+        AMS: [52.31, 4.76], ATL: [33.64, -84.43], HEL: [60.32, 24.96],
+        NYC: [40.64, -73.78], OSL: [60.19, 11.10], CPH: [55.62, 12.66],
+        BOS: [42.36, -71.01], KEF: [63.99, -22.61], YVR: [49.19, -123.18],
+        YYC: [51.13, -114.02], IST: [41.26, 28.73], DUB: [53.42, -6.27],
+        LIS: [38.78, -9.14], GRU: [-23.43, -46.47], SCL: [-33.39, -70.79],
+        NRT: [35.76, 140.39],
+      };
+      const pos = [selectedAircraft.lat, selectedAircraft.lon];
+      const destCoords = AIRPORT_COORDS[selectedAircraft.dest];
+      
+      if (destCoords) {
+        const midLat = (pos[0] + destCoords[0]) / 2 - 3;
+        const midLon = (pos[1] + destCoords[1]) / 2;
+        const current = L.polyline([pos, destCoords], { color: 'white', opacity: 0.4, weight: 1, dashArray: '6, 6' }).addTo(map);
+        const deviation = L.polyline([pos, [midLat, midLon], destCoords], { color: '#0075ff', opacity: 0.7, weight: 2 }).addTo(map);
+        routeLayersRef.current = [current, deviation];
+      }
+    }
+  }, [selectedAircraft, demoMode, map]);
 
-  const AIRPORT_COORDS = {
-    MAD: [40.47, -3.56], JFK: [40.64, -73.78], LHR: [51.47, -0.46],
-    ORD: [41.97, -87.91], CDG: [49.01, 2.55], LAX: [33.94, -118.41],
-    FRA: [50.03, 8.57], YYZ: [43.68, -79.63], DXB: [25.25, 55.36],
-    SYD: [-33.95, 151.18], SIN: [1.36, 103.99], LGW: [51.15, -0.19],
-    FCO: [41.80, 12.25], STN: [51.89, 0.26], AGP: [36.67, -4.49],
-    BCN: [41.30, 2.08], PMI: [39.55, 2.74], EWR: [40.69, -74.17],
-    AMS: [52.31, 4.76], ATL: [33.64, -84.43], HEL: [60.32, 24.96],
-    NYC: [40.64, -73.78], OSL: [60.19, 11.10], CPH: [55.62, 12.66],
-    BOS: [42.36, -71.01], KEF: [63.99, -22.61], YVR: [49.19, -123.18],
-    YYC: [51.13, -114.02], IST: [41.26, 28.73], DUB: [53.42, -6.27],
-    LIS: [38.78, -9.14], GRU: [-23.43, -46.47], SCL: [-33.39, -70.79],
-    NRT: [35.76, 140.39],
-  };
-
-  const pos = [aircraft.lat, aircraft.lon];
-  const destCoords = AIRPORT_COORDS[aircraft.dest];
-  if (!destCoords) return null;
-
-  const midLat = (pos[0] + destCoords[0]) / 2 - 3;
-  const midLon = (pos[1] + destCoords[1]) / 2;
-
-  return (
-    <>
-      <Polyline
-        positions={[pos, destCoords]}
-        pathOptions={{ color: 'white', opacity: 0.4, weight: 1, dashArray: '6, 6' }}
-      />
-      <Polyline
-        positions={[pos, [midLat, midLon], destCoords]}
-        pathOptions={{ color: '#0075ff', opacity: 0.7, weight: 2 }}
-      />
-    </>
-  );
+  return null;
 }
 
 // ─── Radiation Zones ───
@@ -217,11 +192,8 @@ export default function MapPanel({ fleet, solar, selectedCallsign, selectedAircr
       <DemoFlyTo demoMode={demoMode} />
       <RadiationZones alertLevel={alertLevel} />
 
-      {/* ICE673 demo route lines */}
-      <DemoRouteLines selectedAircraft={selectedAircraft} demoMode={demoMode} />
-
-      {/* Generic route lines for other selected aircraft with deviations */}
-      {showGenericRoutes && <RouteLines aircraft={selectedAircraft} />}
+      {/* Imperative route rendering to prevent stale layers */}
+      <RouteOverlay selectedAircraft={selectedAircraft} demoMode={demoMode} />
 
       {/* Selection ring behind selected aircraft */}
       {selectedPosition && (

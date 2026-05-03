@@ -2,14 +2,26 @@ import { useMemo } from 'react';
 import { tierColor, displayScore } from '../api';
 
 // ─── Vision UI Stat Card ───
-function StatCard({ title, value, subtitle, iconNode, subColor = "text-[#00ff88]" }) {
+function StatCard({ title, value, subtitle, iconNode, subColor = "text-[#00ff88]", isWarning = false }) {
+  const textGradient = isWarning
+    ? { background: 'linear-gradient(135deg, #ff4444, #cc00ff)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }
+    : { background: 'linear-gradient(135deg, #00d4ff, #00ff88)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' };
+
   return (
-    <div className="glass-card p-5 flex items-center justify-between h-full">
+    <div 
+      className="p-5 flex items-center justify-between h-full"
+      style={{
+        background: 'linear-gradient(135deg, rgba(0,212,255,0.06) 0%, rgba(139,92,246,0.04) 100%)',
+        border: '1px solid rgba(0,212,255,0.15)',
+        borderRadius: '16px',
+        boxShadow: '0 4px 24px rgba(0,0,0,0.4), inset 0 1px 0 rgba(255,255,255,0.06)'
+      }}
+    >
       <div className="flex flex-col justify-center">
         <div className="text-[12px] text-[#a0aec0] font-bold mb-1">{title}</div>
-        <div className="text-white font-bold text-xl flex items-baseline gap-2">
-          {value}
-          {subtitle && <span className={`text-[12px] font-bold ${subColor}`}>{subtitle}</span>}
+        <div className="font-bold text-3xl flex items-baseline gap-2">
+          <span style={textGradient}>{value}</span>
+          {subtitle && <span className={`text-[12px] font-bold ${subColor}`} style={{ WebkitTextFillColor: 'initial' }}>{subtitle}</span>}
         </div>
       </div>
       <div className="w-11 h-11 rounded-[12px] bg-[#0075ff] flex items-center justify-center shadow-[0_4px_15px_rgba(0,117,255,0.4)] text-white text-xl shrink-0">
@@ -83,6 +95,7 @@ export default function Overview({ fleet, solar, summary, loading, demoMode, onN
           value={alertLevel} 
           subtitle={`${solar?.proton_flux_pfu?.toFixed(1) || '0'} pfu`}
           subColor={alertLevel === 'RED' || alertLevel === 'CRITICAL' ? 'text-[#ff4444]' : 'text-[#00ff88]'}
+          isWarning={alertLevel === 'RED' || alertLevel === 'CRITICAL'}
           iconNode={<svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2a1 1 0 011 1v2a1 1 0 11-2 0V3a1 1 0 011-1zm0 17a1 1 0 011 1v2a1 1 0 11-2 0v-2a1 1 0 011-1zM5.636 5.636a1 1 0 011.414 0l1.414 1.414a1 1 0 01-1.414 1.414L5.636 7.05a1 1 0 010-1.414zm11.314 11.314a1 1 0 011.414 0l1.414 1.414a1 1 0 01-1.414 1.414l-1.414-1.414a1 1 0 010-1.414zM2 12a1 1 0 011-1h2a1 1 0 110 2H3a1 1 0 01-1-1zm17 0a1 1 0 011-1h2a1 1 0 110 2h-2a1 1 0 01-1-1zM7.05 16.95a1 1 0 010 1.414l-1.414 1.414a1 1 0 01-1.414-1.414l1.414-1.414a1 1 0 011.414 0zM18.364 5.636a1 1 0 010 1.414l-1.414 1.414a1 1 0 01-1.414-1.414l1.414-1.414a1 1 0 011.414 0zM12 7a5 5 0 100 10 5 5 0 000-10z"/></svg>}
         />
         <StatCard 
