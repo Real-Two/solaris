@@ -54,10 +54,9 @@ export function tierBgClass(tier) {
   }
 }
 
-// Normalize risk score: API may return 0–1 or 0–100 scale
+// Normalize risk score: Backend already returns 0-100 percentage.
 export function displayScore(riskScore) {
-  const s = riskScore > 1 ? riskScore : riskScore * 100;
-  return parseFloat(s.toFixed(1));
+  return parseFloat(Number(riskScore).toFixed(1));
 }
 
 // Airport rough coordinates for drawing route lines
