@@ -9,7 +9,7 @@ function StatCard({ title, value, subtitle, iconNode, subColor = "text-[#00ff88]
 
   return (
     <div 
-      className="p-5 flex items-center justify-between h-full"
+      className="p-4 lg:p-5 flex items-center justify-between h-full min-h-[120px] overflow-hidden"
       style={{
         background: 'linear-gradient(135deg, rgba(0,212,255,0.06) 0%, rgba(139,92,246,0.04) 100%)',
         border: '1px solid rgba(0,212,255,0.15)',
@@ -17,14 +17,14 @@ function StatCard({ title, value, subtitle, iconNode, subColor = "text-[#00ff88]
         boxShadow: '0 4px 24px rgba(0,0,0,0.4), inset 0 1px 0 rgba(255,255,255,0.06)'
       }}
     >
-      <div className="flex flex-col justify-center">
-        <div className="text-[12px] text-[#a0aec0] font-bold mb-1">{title}</div>
-        <div className="font-bold text-3xl flex items-baseline gap-2">
+      <div className="flex flex-col justify-center min-w-0">
+        <div className="text-[11px] lg:text-[12px] text-[#a0aec0] font-bold mb-1 truncate">{title}</div>
+        <div className="font-bold text-2xl lg:text-3xl flex items-baseline gap-1 lg:gap-2 truncate">
           <span style={textGradient}>{value}</span>
-          {subtitle && <span className={`text-[12px] font-bold ${subColor}`} style={{ WebkitTextFillColor: 'initial' }}>{subtitle}</span>}
+          {subtitle && <span className={`text-[10px] lg:text-[12px] font-bold ${subColor} whitespace-nowrap`} style={{ WebkitTextFillColor: 'initial' }}>{subtitle}</span>}
         </div>
       </div>
-      <div className="w-11 h-11 rounded-[12px] bg-[#0075ff] flex items-center justify-center shadow-[0_4px_15px_rgba(0,117,255,0.4)] text-white text-xl shrink-0">
+      <div className="w-10 h-10 lg:w-11 lg:h-11 rounded-[12px] bg-[#0075ff] flex items-center justify-center shadow-[0_4px_15px_rgba(0,117,255,0.4)] text-white text-lg lg:text-xl shrink-0 ml-2">
         {iconNode}
       </div>
     </div>
@@ -83,7 +83,7 @@ export default function Overview({ fleet, solar, summary, loading, demoMode, onN
     <div className="p-6 space-y-6 flex-1 overflow-y-auto h-full min-h-0">
       
       {/* ─── Row 1: 4 Stat Cards ─── */}
-      <div className="grid grid-cols-4 gap-6">
+      <div className="grid grid-cols-4 gap-4 w-full">
         <StatCard 
           title="Fleet Status" 
           value={aircraft.length} 
@@ -115,22 +115,36 @@ export default function Overview({ fleet, solar, summary, loading, demoMode, onN
       {/* ─── Row 2: Visual Cards ─── */}
       <div className="grid grid-cols-12 gap-6 h-[280px]">
         
-        {/* Welcome Card (col-span-5) */}
-        <div className="col-span-5 glass-card relative overflow-hidden p-6 flex flex-col justify-between">
-          {/* Background image & gradient */}
-          <div className="absolute inset-0 bg-cover bg-center z-0 scale-105" style={{ backgroundImage: 'url(/jellyfish.png)', opacity: 0.7 }} />
-          <div className="absolute inset-0 bg-gradient-to-r from-[#060b28] via-[#060b28]/80 to-transparent z-0" />
-          
+        {/* Active Solar Event Card (col-span-5) */}
+        <div className="col-span-5 relative overflow-hidden p-6 flex flex-col justify-between"
+             style={{
+               background: 'linear-gradient(135deg, rgba(255,68,68,0.08), rgba(204,0,255,0.06))',
+               border: '1px solid rgba(255,68,68,0.25)',
+               borderRadius: '16px',
+               boxShadow: '0 4px 24px rgba(0,0,0,0.4), inset 0 1px 0 rgba(255,255,255,0.06)'
+             }}>
           <div className="relative z-10 flex-1 flex flex-col">
-            <div className="text-[#a0aec0] font-bold text-[13px] mb-1 tracking-wide">Welcome to SOLARIS</div>
-            <div className="text-white text-[28px] font-bold mb-3 leading-tight">Operations <br />Center</div>
-            <div className="text-[#a0aec0] text-[13px] leading-relaxed max-w-[220px]">
-              Real-time solar radiation monitoring active. Fleet exposure is being tracked globally.
+            <div className="text-[11px] tracking-[0.15em] font-mono text-[#00d4ff] uppercase font-bold mb-1">
+              ACTIVE SOLAR EVENT
             </div>
-            <div className="mt-auto">
-              <button className="text-white text-[13px] font-bold flex items-center gap-1 hover:text-[#0075ff] transition-colors cursor-pointer group">
-                Tap to record <span className="text-lg transition-transform group-hover:translate-x-1">→</span>
-              </button>
+            <div className="text-4xl font-bold mb-4" 
+                 style={{ background: 'linear-gradient(135deg, #ffffff, #00d4ff)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>
+              X2.8 Solar Flare
+            </div>
+            
+            <div className="space-y-2 mt-auto">
+              <div className="font-mono text-[12px] text-white/80">Onset: Oct 30 2025 14:30 UTC</div>
+              <div className="font-mono text-[12px] text-white/80">Peak Flux: 4,200 pfu @ 19:00 UTC</div>
+              <div className="font-mono text-[12px] text-white/80">Affected Aircraft: 4 of 25</div>
+            </div>
+            
+            <div className="mt-4 pt-4 border-t border-[rgba(255,68,68,0.2)] flex items-center gap-3">
+              <div className="flex-1 h-[2px] bg-[rgba(255,68,68,0.3)] relative overflow-hidden">
+                <div className="absolute inset-0 bg-[#ff4444] animate-pulse"></div>
+              </div>
+              <span className="text-[9px] font-bold text-[#ff4444] tracking-widest uppercase">
+                EVENT IN PROGRESS
+              </span>
             </div>
           </div>
         </div>

@@ -29,18 +29,14 @@ const MARKERS = [
   { time: 21.0, text: 'Event subsiding', color: '#ffaa00' },
 ];
 
-const EVENT_LOG = [
-  { time: '14:00', text: 'NOAA reports nominal solar conditions. All fleet at GREEN status.', type: 'nominal' },
-  { time: '16:30', text: 'GOES-16 detects sudden proton flux increase. SOLARIS monitoring enters AMBER alert.', type: 'warning' },
-  { time: '17:18', text: 'SOLARIS issues ACARS advisory to ICE673 (KEF→JFK): "Descend to FL310, reduce SEU exposure by 62%".', type: 'advisory' },
-  { time: '17:30', text: 'ICE673 acknowledges advisory. Begins descent from FL390 to FL310.', type: 'success' },
-  { time: '17:48', text: 'Unmanaged JetBlue A320 at FL390 over North Atlantic experiences avionics anomaly due to SEU event.', type: 'critical' },
-  { time: '18:00', text: 'SOLARIS escalates 3 additional aircraft (ACA875, SAS903, FIN5) to RED/CRITICAL status.', type: 'warning' },
-  { time: '19:00', text: 'Peak proton flux reaches 4200 pfu. All SOLARIS-managed aircraft safely at lower altitudes.', type: 'critical' },
-  { time: '21:00', text: 'Flux levels declining. SOLARIS begins clearing advisories for southern-route aircraft.', type: 'success' },
-  { time: '22:00', text: 'Event subsiding. Fleet returning to nominal operations. 3 diversions prevented, 28.4t CO₂ saved.', type: 'nominal' },
+const timelineEvents = [
+  { time: '14:00', text: 'NOAA reports nominal solar conditions. All fleet at GREEN status.', type: 'normal' },
+  { time: '16:30', text: 'SPE onset detected. Proton flux rising above 10 pfu. SOLARIS alert level changes to AMBER.', type: 'warning' },
+  { time: '17:18', text: 'SOLARIS issues ACARS advisory to ICE673, ACA875, SAS903, FIN5. Recommends descent to FL310.', type: 'success' },
+  { time: '17:48', text: 'Incident window — unmanaged aircraft in this corridor experienced avionics anomalies. SOLARIS-monitored aircraft already below threshold.', type: 'critical' },
+  { time: '19:00', text: 'Peak flux reached 4,200 pfu. All 4 advised aircraft operating safely at FL310.', type: 'critical' },
+  { time: '21:00', text: 'Event subsiding. Flux declining. Fleet returns to normal cruise altitude.', type: 'normal' },
 ];
-
 function getFluxAtTime(t) {
   if (t <= TIMELINE[0].time) return TIMELINE[0].flux;
   if (t >= TIMELINE[TIMELINE.length - 1].time) return TIMELINE[TIMELINE.length - 1].flux;
@@ -133,7 +129,7 @@ export default function EventReplay() {
         }
         return next;
       });
-    }, 800);
+    }, 600);
   }, [playing, currentTime]);
 
   useEffect(() => () => clearInterval(intervalRef.current), []);
@@ -141,13 +137,18 @@ export default function EventReplay() {
   const flux = getFluxAtTime(currentTime);
   const isAdvisoryIssued = currentTime >= 17.3;
   const isIncidentWindow = currentTime >= 17.8;
-  const visibleEvents = EVENT_LOG.filter(e => {
-    const h = parseInt(e.time.split(':')[0]);
-    const m = parseInt(e.time.split(':')[1]);
-    return h + m / 60 <= currentTime;
-  });
 
-  const typeColor = { nominal: '#00ff88', warning: '#ffaa00', advisory: '#0075ff', success: '#00ff88', critical: '#ff4444' };
+  // Track the previous time state for flashing effects
+  const [flashRed, setFlashRed] = useState(false);
+  useEffect(() => {
+    if (currentTime >= 17.8 && currentTime < 18.1 && playing) {
+      setFlashRed(true);
+      const t = setTimeout(() => setFlashRed(false), 800);
+      return () => clearTimeout(t);
+    }
+  }, [currentTime, playing]);
+
+  const typeColor = { normal: '#6b7280', warning: '#ffaa00', success: '#00d4ff', critical: '#ff4444' };
 
   return (
     <div className="p-6 space-y-6 max-w-[1400px] mx-auto h-full overflow-y-auto">
@@ -203,7 +204,7 @@ export default function EventReplay() {
       {/* Split View */}
       <div className="grid grid-cols-2 gap-6">
         {/* WITHOUT SOLARIS */}
-        <div className={`p-6 rounded-[20px] transition-all duration-300 ${isIncidentWindow ? 'shadow-[0_0_30px_rgba(255,68,68,0.4)]' : ''}`} style={{ background: 'rgba(255,68,68,0.05)', border: '1px solid rgba(255,68,68,0.1)' }}>
+        <div className={`p-6 rounded-[20px] transition-all duration-300 ${flashRed ? 'bg-[rgba(255,68,68,0.2)] shadow-[0_0_40px_rgba(255,68,68,0.6)] border-[rgba(255,68,68,0.5)]' : isIncidentWindow ? 'shadow-[0_0_30px_rgba(255,68,68,0.4)]' : ''}`} style={{ background: 'rgba(255,68,68,0.05)', border: '1px solid rgba(255,68,68,0.1)' }}>
           <div className="text-[11px] tracking-[0.15em] text-[#ff4444] uppercase font-bold mb-4">WITHOUT SOLARIS</div>
           {isIncidentWindow && (
             <div className="mb-4 p-4 rounded-[12px] animate-pulse" style={{ background: 'rgba(255,68,68,0.15)', border: '1px solid rgba(255,68,68,0.3)', boxShadow: '0 0 15px rgba(255,68,68,0.3)' }}>
@@ -244,17 +245,42 @@ export default function EventReplay() {
       {/* Event Log Timeline */}
       <div className="glass-card p-6 pb-8">
         <div className="text-[10px] tracking-[0.15em] text-[#a0aec0] uppercase font-bold mb-6">Event Timeline</div>
-        <div className="space-y-0">
-          {visibleEvents.map((evt, i) => (
-            <div key={i} className="flex gap-6 py-3 border-l-2 pl-5 ml-2 transition-all duration-300"
-              style={{ borderColor: typeColor[evt.type] || '#a0aec0' }}>
-              <span className="text-[13px] font-mono font-bold text-[#a0aec0] shrink-0 w-12 pt-0.5">{evt.time}</span>
-              <span className="text-[13px] text-white leading-relaxed">{evt.text}</span>
-            </div>
-          ))}
-          {visibleEvents.length === 0 && (
-            <div className="text-[13px] text-[#a0aec0] py-6 text-center italic">Advance the timeline to see events...</div>
-          )}
+        <div className="space-y-4">
+          {timelineEvents.map((evt, i) => {
+            const h = parseInt(evt.time.split(':')[0]);
+            const m = parseInt(evt.time.split(':')[1]);
+            const evtTime = h + m / 60;
+            const isPassed = currentTime >= evtTime;
+            
+            let extraGlow = '';
+            let textGlow = '';
+            let prefix = '';
+            
+            if (evt.time === '17:18') {
+              if (isPassed) {
+                extraGlow = '0 0 15px rgba(0,212,255,0.4)';
+              }
+            } else if (evt.time === '17:48') {
+              prefix = '⚠ ';
+              if (isPassed) {
+                extraGlow = '0 0 15px rgba(255,68,68,0.4)';
+              }
+            }
+            
+            return (
+              <div key={i} className="flex gap-6 py-2 border-l-[3px] pl-5 ml-2 transition-all duration-300"
+                style={{ 
+                  borderColor: typeColor[evt.type],
+                  boxShadow: extraGlow,
+                  opacity: isPassed ? 1 : 0.4
+                }}>
+                <span className="text-[14px] font-mono font-bold text-[#00d4ff] shrink-0 w-14 pt-0.5">{evt.time}</span>
+                <span className={`text-[13px] leading-relaxed font-medium ${isPassed ? 'text-white' : 'text-[#a0aec0]'}`}>
+                  <span className="text-[#ff4444] font-bold">{prefix}</span>{evt.text}
+                </span>
+              </div>
+            );
+          })}
         </div>
       </div>
     </div>

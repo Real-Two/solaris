@@ -35,22 +35,54 @@ function createSelectionRing() {
   });
 }
 
-// ─── Map Legend Control ───
 function MapLegend() {
   const map = useMap();
 
   useEffect(() => {
     const legend = L.control({ position: 'topleft' });
     legend.onAdd = () => {
-      const div = L.DomUtil.create('div', 'map-legend');
-      div.innerHTML = `
-        <div style="font-size:10px;font-weight:600;letter-spacing:0.1em;color:#a0aec0;margin-bottom:4px;text-transform:uppercase;">Threat Tier</div>
-        <div class="legend-item"><div class="legend-dot" style="background:#00ff88;"></div><span style="font-size:11px;">Green — Safe</span></div>
-        <div class="legend-item"><div class="legend-dot" style="background:#ffaa00;"></div><span style="font-size:11px;">Amber — Monitor</span></div>
-        <div class="legend-item"><div class="legend-dot" style="background:#ff4444;"></div><span style="font-size:11px;">Red — At Risk</span></div>
-        <div class="legend-item"><div class="legend-dot" style="background:#cc00ff;"></div><span style="font-size:11px;">Critical — Urgent</span></div>
+      const container = L.DomUtil.create('div', 'leaflet-bar leaflet-control');
+      container.style.backgroundColor = 'rgba(6,11,40,0.8)';
+      container.style.border = '1px solid rgba(255,255,255,0.1)';
+      container.style.borderRadius = '8px';
+      container.style.backdropFilter = 'blur(8px)';
+      container.style.overflow = 'hidden';
+      container.style.cursor = 'pointer';
+
+      const btn = L.DomUtil.create('div', '', container);
+      btn.innerHTML = 'Legend';
+      btn.style.padding = '6px 12px';
+      btn.style.fontSize = '11px';
+      btn.style.fontWeight = 'bold';
+      btn.style.color = '#a0aec0';
+      btn.style.textAlign = 'center';
+      btn.style.textTransform = 'uppercase';
+      btn.style.letterSpacing = '0.05em';
+
+      const content = L.DomUtil.create('div', '', container);
+      content.style.display = 'none';
+      content.style.borderTop = '1px solid rgba(255,255,255,0.1)';
+      content.style.padding = '10px';
+      content.innerHTML = `
+        <div style="font-size:10px;font-weight:600;letter-spacing:0.1em;color:#a0aec0;margin-bottom:6px;text-transform:uppercase;">Threat Tier</div>
+        <div class="legend-item" style="display:flex;align-items:center;gap:8px;margin-bottom:4px;color:white;"><div class="legend-dot" style="width:8px;height:8px;border-radius:50%;background:#00ff88;box-shadow:0 0 6px #00ff88;"></div><span style="font-size:11px;">Green — Safe</span></div>
+        <div class="legend-item" style="display:flex;align-items:center;gap:8px;margin-bottom:4px;color:white;"><div class="legend-dot" style="width:8px;height:8px;border-radius:50%;background:#ffaa00;box-shadow:0 0 6px #ffaa00;"></div><span style="font-size:11px;">Amber — Monitor</span></div>
+        <div class="legend-item" style="display:flex;align-items:center;gap:8px;margin-bottom:4px;color:white;"><div class="legend-dot" style="width:8px;height:8px;border-radius:50%;background:#ff4444;box-shadow:0 0 6px #ff4444;"></div><span style="font-size:11px;">Red — At Risk</span></div>
+        <div class="legend-item" style="display:flex;align-items:center;gap:8px;color:white;"><div class="legend-dot" style="width:8px;height:8px;border-radius:50%;background:#cc00ff;box-shadow:0 0 6px #cc00ff;"></div><span style="font-size:11px;">Critical — Urgent</span></div>
       `;
-      return div;
+
+      let isOpen = false;
+      container.addEventListener('click', (e) => {
+        L.DomEvent.stopPropagation(e);
+        isOpen = !isOpen;
+        content.style.display = isOpen ? 'block' : 'none';
+        btn.style.color = isOpen ? '#ffffff' : '#a0aec0';
+        btn.style.backgroundColor = isOpen ? 'rgba(255,255,255,0.05)' : 'transparent';
+      });
+
+      L.DomEvent.disableClickPropagation(container);
+
+      return container;
     };
     legend.addTo(map);
     return () => legend.remove();

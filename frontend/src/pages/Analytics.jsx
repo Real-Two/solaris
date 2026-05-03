@@ -82,6 +82,8 @@ export default function Analytics({ fleet, summary, demoMode }) {
             <Tooltip content={<CustomTooltip />} cursor={{ stroke: 'rgba(255,255,255,0.1)', strokeWidth: 2 }} />
             <ReferenceLine y={100} stroke="#ff4444" strokeDasharray="6 4" strokeWidth={1.5}
               label={{ value: 'SEU Risk Threshold', position: 'top', fill: '#ff4444', fontSize: 10 }} />
+            <ReferenceLine x="17:48" stroke="#ff4444" strokeDasharray="6 4" strokeWidth={1.5}
+              label={{ value: '⚠ Incident Window', position: 'insideTopLeft', fill: '#ff4444', fontSize: 10 }} />
             <Area type="monotone" dataKey="flux" fill="url(#fluxGrad)" stroke="none" />
             <Line type="monotone" dataKey="flux" stroke="#0075ff" strokeWidth={3} dot={false} name="Proton Flux (pfu)" style={{ filter: 'drop-shadow(0 0 8px rgba(0,117,255,0.5))' }} />
           </ComposedChart>

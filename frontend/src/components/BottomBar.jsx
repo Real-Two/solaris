@@ -65,7 +65,7 @@ export default function BottomBar({ summary, fleet, countdown, dataVersion, demo
       color: atRisk > 0 ? '#ff4444' : '#00ff88',
     },
     {
-      icon: '🕐',
+      icon: demoMode ? <span style={{ color: '#ffaa00' }}>●</span> : '🕐',
       label: demoMode ? 'Mode' : 'Next Refresh',
       value: demoMode ? 'DEMO' : countdown,
       unit: demoMode ? '' : 's',
