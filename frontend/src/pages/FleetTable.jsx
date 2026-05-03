@@ -9,11 +9,12 @@ export default function FleetTable({ fleet, loading, onNavigateToAircraft }) {
   const aircraft = fleet?.aircraft || [];
 
   const filtered = useMemo(() => {
-    return aircraft.filter(ac => {
+    const result = aircraft.filter(ac => {
       const matchSearch = !search || ac.callsign.toLowerCase().includes(search.toLowerCase());
       const matchTier = tierFilter === 'ALL' || ac.tier === tierFilter;
       return matchSearch && matchTier;
     });
+    return result.sort((a, b) => b.risk_score - a.risk_score);
   }, [aircraft, search, tierFilter]);
 
   if (loading) {

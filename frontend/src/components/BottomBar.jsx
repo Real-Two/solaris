@@ -48,39 +48,39 @@ export default function BottomBar({ summary, fleet, countdown, dataVersion, demo
       label: 'CO₂ Avoided This Event',
       value: <AnimatedCounter target={co2} />,
       unit: 't',
-      color: '#10b981',
+      color: '#00ff88',
     },
     {
       icon: '✈️',
       label: 'Diversions Prevented',
       value: <AnimatedCounter target={diversions} />,
       unit: '',
-      color: '#2d6a4f',
+      color: '#0075ff',
     },
     {
       icon: '⚡',
       label: 'Fleet at Risk',
       value: atRisk,
       unit: '',
-      color: atRisk > 0 ? '#ef4444' : '#10b981',
+      color: atRisk > 0 ? '#ff4444' : '#00ff88',
     },
     {
       icon: '🕐',
       label: demoMode ? 'Mode' : 'Next Refresh',
       value: demoMode ? 'DEMO' : countdown,
       unit: demoMode ? '' : 's',
-      color: demoMode ? '#f59e0b' : '#2d6a4f',
+      color: demoMode ? '#ffaa00' : '#ffffff', // white monospace bold for countdown
     },
   ];
 
   return (
     <div
-      className="shrink-0 flex items-center justify-around px-6 border-t border-gray-200 bg-white"
+      className="shrink-0 flex items-center justify-around px-6 border-t border-[rgba(255,255,255,0.05)] bg-[rgba(6,11,40,0.6)] backdrop-blur-3xl"
       style={{ height: 52 }}
     >
       {metrics.map((m, i) => (
         <div key={i} className="flex flex-col items-center" id={`metric-${i}`}>
-          <span className="text-[9px] tracking-[0.12em] text-gray-500 font-medium uppercase mb-0.5">
+          <span className="text-[9px] tracking-[0.12em] text-[#a0aec0] font-medium uppercase mb-0.5">
             {m.icon} {m.label}
           </span>
           <span
@@ -89,7 +89,7 @@ export default function BottomBar({ summary, fleet, countdown, dataVersion, demo
           >
             {m.value}
             {m.unit && (
-              <span className="text-[11px] ml-0.5 text-gray-500">{m.unit}</span>
+              <span className="text-[11px] ml-0.5" style={{ color: m.color }}>{m.unit}</span>
             )}
           </span>
         </div>

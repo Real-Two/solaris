@@ -25,13 +25,20 @@ export default function App() {
   const [lastFetchTime, setLastFetchTime] = useState(null);
   const [countdown, setCountdown] = useState(30);
   const [dataVersion, setDataVersion] = useState(0);
-  const [demoMode, setDemoMode] = useState(true); // Boot into demo mode by default
+  const [demoMode, setDemoMode] = useState(() => {
+    const saved = localStorage.getItem('solaris_demo_mode');
+    return saved !== null ? JSON.parse(saved) : true;
+  });
   const navigate = useNavigate();
 
   const liveDataRef = useRef({ solar: null, fleet: null, summary: null });
   const countdownRef = useRef(null);
   const pollRef = useRef(null);
   const initializedDemoRef = useRef(false);
+
+  useEffect(() => {
+    localStorage.setItem('solaris_demo_mode', JSON.stringify(demoMode));
+  }, [demoMode]);
 
   const refreshAll = useCallback(async () => {
     setFetching(true);
@@ -81,8 +88,9 @@ export default function App() {
       const ice673 = demoFleet.aircraft.find(a => a.callsign === 'ICE673');
       if (ice673) setSelectedAircraft(ice673);
       setLoading(false);
+      navigate('/');
     }
-  }, [demoMode]);
+  }, [demoMode, navigate]);
 
   useEffect(() => {
     if (demoMode) { if (pollRef.current) clearInterval(pollRef.current); return; }

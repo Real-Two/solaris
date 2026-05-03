@@ -40,7 +40,7 @@ export default function TopBar({ solar, fetching, isStale, demoMode, onToggleDem
             className={`w-2 h-2 rounded-full ${isStale ? 'bg-gray-500' : 'bg-[#0075ff] pulse-dot'}`}
           />
           <span className="font-sans text-xl font-bold text-white tracking-tight">
-            Donezo<span className="text-[#0075ff]">.</span>
+            SOLARIS<span className="text-[#0075ff]">.</span>
           </span>
         </div>
         <span className="text-[11px] text-[#A0AEC0] italic hidden xl:block">
