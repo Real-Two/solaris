@@ -41,6 +41,31 @@ function greatCircle(lat1, lon1, lat2, lon2, points = 30) {
   return route;
 }
 
+// --- Smooth Bezier Curve Interpolation for Deviations ---
+function bezierCurve2(p0, p1, p2, numPoints = 25) {
+  const pts = [];
+  for(let i=0; i<=numPoints; i++) {
+    const t = i / numPoints;
+    const u = 1 - t;
+    const lat = u*u*p0[0] + 2*u*t*p1[0] + t*t*p2[0];
+    const lon = u*u*p0[1] + 2*u*t*p1[1] + t*t*p2[1];
+    pts.push([lat, lon]);
+  }
+  return pts;
+}
+
+function bezierCurve3(p0, p1, p2, p3, numPoints = 35) {
+  const pts = [];
+  for(let i=0; i<=numPoints; i++) {
+    const t = i / numPoints;
+    const u = 1 - t;
+    const lat = u*u*u*p0[0] + 3*u*u*t*p1[0] + 3*u*t*t*p2[0] + t*t*t*p3[0];
+    const lon = u*u*u*p0[1] + 3*u*u*t*p1[1] + 3*u*t*t*p2[1] + t*t*t*p3[1];
+    pts.push([lat, lon]);
+  }
+  return pts;
+}
+
 // ─── Exact aircraft DivIcon from spec ───
 function createPlaneIcon(tier, heading) {
   const colors = { GREEN: '#00ff88', AMBER: '#ffaa00', RED: '#ff4444', CRITICAL: '#cc00ff' };
@@ -150,8 +175,14 @@ function RouteOverlay({ selectedAircraft, demoMode }) {
     if (!selectedAircraft) return;
 
     if (selectedAircraft.callsign === 'ICE673' && demoMode) {
-      const current = L.polyline([[66.1,-25.8],[40.6,-73.8]], {color:'#ffffff', weight:1.5, opacity:0.35, dashArray:'8,8'}).addTo(map);
-      const deviation = L.polyline([[66.1,-25.8],[58,-30],[45,-55],[40.6,-73.8]], {color:'#00d4ff', weight:2.5, opacity:0.9}).addTo(map);
+      // Use great circle for the white dashed line to be smooth
+      const fullRoute = greatCircle(66.1, -25.8, 40.6, -73.8);
+      const current = L.polyline(fullRoute, {color:'#ffffff', weight:1.5, opacity:0.35, dashArray:'8,8'}).addTo(map);
+      
+      // Use cubic bezier for the deviation to be perfectly smooth
+      const deviationRoute = bezierCurve3([66.1,-25.8], [58,-30], [45,-55], [40.6,-73.8]);
+      const deviation = L.polyline(deviationRoute, {color:'#00d4ff', weight:2.5, opacity:0.9}).addTo(map);
+      
       routeLayersRef.current = [current, deviation];
     } else {
       const decision = assessFlightDecision(selectedAircraft, { score: selectedAircraft.risk_score || 0 });
@@ -189,12 +220,11 @@ function RouteOverlay({ selectedAircraft, demoMode }) {
 
         if (decision.decision === 'DEVIATE' || selectedAircraft.deviations?.length > 0) {
           // Deviation is a reroute from current pos to a mid point to destination to avoid radiation
-          // Calculate a simple deviated great circle by shifting the mid-point equatorward
-          const midLat = (pos[0] + destCoords[0]) / 2 - 5; // shift south
+          // Calculate a smooth quadratic bezier curve by shifting the control point equatorward
+          const midLat = (pos[0] + destCoords[0]) / 2 - 10; // pull curve further south
           const midLon = (pos[1] + destCoords[1]) / 2;
-          const curve1 = greatCircle(pos[0], pos[1], midLat, midLon, 15);
-          const curve2 = greatCircle(midLat, midLon, destCoords[0], destCoords[1], 15);
-          const deviationRoute = [...curve1, ...curve2];
+          
+          const deviationRoute = bezierCurve2(pos, [midLat, midLon], destCoords);
           const deviation = L.polyline(deviationRoute, { color: '#0075ff', opacity: 0.7, weight: 2 }).addTo(map);
           routeLayersRef.current.push(deviation);
         }
