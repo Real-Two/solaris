@@ -1,6 +1,6 @@
 import { useRef, useEffect } from 'react';
 
-export default function TopBar({ solar, fetching, isStale, demoMode, onToggleDemo }) {
+export default function TopBar({ solar, fetching, isStale, demoMode, onToggleDemo, apiStatus }) {
   const prevSolarRef = useRef(null);
   const flashRefs = useRef({});
 
