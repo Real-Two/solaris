@@ -9,10 +9,10 @@ import FleetMap from './pages/FleetMap';
 import FleetTable from './pages/FleetTable';
 import EventReplay from './pages/EventReplay';
 import Analytics from './pages/Analytics';
-import { fetchSolar, fetchFleet, fetchSummary } from './api';
 import { DEMO_SOLAR, DEMO_SUMMARY, applyDemoOverrides } from './demoData';
-
-const REFRESH_INTERVAL = 30000;
+import { fetchAllLiveData } from './services/liveApi';
+import { calculateFleetRisk } from './services/riskCalculator';
+import { seedHistoricalData } from './services/flightLog';
 
 export default function App() {
   const [solar, setSolar] = useState(null);
@@ -29,6 +29,8 @@ export default function App() {
     const saved = localStorage.getItem('solaris_demo_mode');
     return saved !== null ? JSON.parse(saved) : true;
   });
+  const [nmdbData, setNmdbData] = useState(null);
+  const [apiStatus, setApiStatus] = useState({ noaa: 'unknown', nmdb: 'unknown', opensky: 'unknown' });
   const navigate = useNavigate();
 
   const liveDataRef = useRef({ solar: null, fleet: null, summary: null });
@@ -43,61 +45,113 @@ export default function App() {
   const refreshAll = useCallback(async () => {
     setFetching(true);
     try {
-      const [solarData, fleetData, summaryData] = await Promise.all([
-        fetchSolar(), fetchFleet(), fetchSummary(),
-      ]);
-      liveDataRef.current = { solar: solarData, fleet: fleetData, summary: summaryData };
-      if (!demoMode) {
-        setSolar(solarData);
-        setFleet(fleetData);
-        setSummary(summaryData);
-        // Ensure selectedAircraft reference updates if live data updates
-        if (selectedAircraft) {
-          const updated = fleetData.aircraft.find(a => a.callsign === selectedAircraft.callsign);
-          if (updated) setSelectedAircraft(updated);
+      if (demoMode) {
+        // Demo mode: use existing demo data (unchanged)
+        const liveFleet = liveDataRef.current.fleet || null;
+        const demoFleet = applyDemoOverrides(liveFleet);
+        setSolar(DEMO_SOLAR);
+        setFleet(demoFleet);
+        setSummary(DEMO_SUMMARY);
+        setError(null);
+        // Auto-select ICE673
+        const ice673 = demoFleet.aircraft.find(a => a.callsign === 'ICE673');
+        if (ice673 && !selectedAircraft) setSelectedAircraft(ice673);
+      } else {
+        // Live mode: fetch from proxy APIs
+        const liveData = await fetchAllLiveData();
+
+        // Update API status
+        const newStatus = {
+          noaa: liveData.solar ? 'ok' : 'error',
+          nmdb: liveData.nmdb ? 'ok' : 'error',
+          opensky: liveData.flights ? 'ok' : 'error'
+        };
+        setApiStatus(newStatus);
+
+        // Solar data
+        if (liveData.solar) {
+          setSolar(liveData.solar);
+        }
+
+        // NMDB data
+        if (liveData.nmdb) {
+          setNmdbData(liveData.nmdb);
+        }
+
+        // Fleet data — calculate risk scores
+        if (liveData.flights && liveData.flights.aircraft) {
+          const noaa = liveData.solar || solar;
+          const nmdb = liveData.nmdb || nmdbData || { average: 5000 };
+          const enrichedFleet = calculateFleetRisk(liveData.flights.aircraft, noaa, nmdb);
+          setFleet({ aircraft: enrichedFleet, count: enrichedFleet.length });
+
+          // Update selected aircraft if it exists in new data
+          if (selectedAircraft) {
+            const updated = enrichedFleet.find(a => a.callsign === selectedAircraft.callsign);
+            if (updated) setSelectedAircraft(updated);
+          }
+        }
+
+        // Summary (computed from live data)
+        // In live mode, compute summary from fleet + log
+        const fleetArr = fleet?.aircraft || [];
+        const atRisk = fleetArr.filter(a => a.tier === 'RED' || a.tier === 'CRITICAL').length;
+        setSummary({
+          co2_saved_tonnes: atRisk * 9.5,
+          diversions_prevented: Math.max(0, atRisk - 1),
+          fleet_at_risk: atRisk
+        });
+
+        // Set errors
+        if (liveData.errors.length > 0) {
+          if (liveData.errors.length === 3) {
+            setError('All APIs offline');
+          } else {
+            setError(`Partial: ${liveData.errors.map(e => e.api).join(', ')} unavailable`);
+          }
+        } else {
+          setError(null);
         }
       }
-      setError(null);
+
       setLastFetchTime(Date.now());
       setCountdown(30);
       setDataVersion(v => v + 1);
     } catch (err) {
-      setError('Backend offline');
+      setError('Data fetch failed');
       console.error('Fetch error:', err);
     } finally {
       setLoading(false);
       setFetching(false);
     }
-  }, [demoMode, selectedAircraft]);
+  }, [demoMode, selectedAircraft, solar, nmdbData, fleet]);
 
-  useEffect(() => { refreshAll(); }, []);
+  // Initial load — seed historical data and fetch
+  useEffect(() => {
+    seedHistoricalData();
+    refreshAll();
+  }, []);
 
-  // Initialize demo mode data
+  // Demo mode initialization — navigate to overview on first demo load
   useEffect(() => {
     if (demoMode && !initializedDemoRef.current) {
       initializedDemoRef.current = true;
-      const liveFleet = liveDataRef.current.fleet || null;
-      const demoFleet = applyDemoOverrides(liveFleet);
-      setSolar(DEMO_SOLAR);
-      setFleet(demoFleet);
-      setSummary(DEMO_SUMMARY);
-      setError(null);
-      setDataVersion(v => v + 1);
-      
-      // Auto-select ICE673 on load in demo mode
-      const ice673 = demoFleet.aircraft.find(a => a.callsign === 'ICE673');
-      if (ice673) setSelectedAircraft(ice673);
-      setLoading(false);
       navigate('/');
     }
   }, [demoMode, navigate]);
 
+  // Polling interval — 120s in live mode for OpenSky rate limits
   useEffect(() => {
-    if (demoMode) { if (pollRef.current) clearInterval(pollRef.current); return; }
-    pollRef.current = setInterval(refreshAll, REFRESH_INTERVAL);
+    if (demoMode) {
+      if (pollRef.current) clearInterval(pollRef.current);
+      return;
+    }
+    // Live mode: refresh every 2 minutes (120s) for OpenSky rate limits
+    pollRef.current = setInterval(refreshAll, 120000);
     return () => clearInterval(pollRef.current);
   }, [refreshAll, demoMode]);
 
+  // Countdown timer (visual only)
   useEffect(() => {
     countdownRef.current = setInterval(() => setCountdown(c => (c > 0 ? c - 1 : 30)), 1000);
     return () => clearInterval(countdownRef.current);
@@ -106,30 +160,16 @@ export default function App() {
   const handleToggleDemo = useCallback(() => {
     setDemoMode(prev => {
       const next = !prev;
-      if (next) {
-        const liveFleet = liveDataRef.current.fleet || fleet;
-        const demoFleet = applyDemoOverrides(liveFleet);
-        setSolar(DEMO_SOLAR);
-        setFleet(demoFleet);
-        setSummary(DEMO_SUMMARY);
-        setError(null);
-        setDataVersion(v => v + 1);
-        
-        // Auto-select ICE673 when toggling ON
-        const ice673 = demoFleet.aircraft.find(a => a.callsign === 'ICE673');
-        if (ice673) setSelectedAircraft(ice673);
-      } else {
-        const live = liveDataRef.current;
-        setSolar(live.solar);
-        setFleet(live.fleet);
-        setSummary(live.summary);
+      initializedDemoRef.current = false; // Reset so demo re-initializes
+      if (!next) {
+        // Switching to live mode — clear demo data, trigger refresh
         setSelectedAircraft(null);
-        setDataVersion(v => v + 1);
+        setLoading(true);
         setTimeout(() => refreshAll(), 100);
       }
       return next;
     });
-  }, [fleet, refreshAll]);
+  }, [refreshAll]);
 
   const handleSelectAircraft = useCallback((ac) => {
     // Note: ac can be a callsign (string) from Map or full object from table.
@@ -155,14 +195,14 @@ export default function App() {
 
   const isStale = !lastFetchTime || (Date.now() - lastFetchTime > 60000);
   const isConnected = !error && !isStale;
-  
+
   // Pass selectedCallsign down for components that still expect it
   const selectedCallsign = selectedAircraft?.callsign || null;
 
   return (
     <div className="relative flex flex-col w-screen h-screen overflow-hidden" style={{ zIndex: 1 }}>
       {/* Top Bar — always visible */}
-      <TopBar solar={solar} fetching={fetching} isStale={isStale} demoMode={demoMode} onToggleDemo={handleToggleDemo} />
+      <TopBar solar={solar} fetching={fetching} isStale={isStale} demoMode={demoMode} onToggleDemo={handleToggleDemo} apiStatus={apiStatus} />
       {error && !demoMode && <ErrorBanner />}
 
       {/* Main: Sidebar + Content */}
@@ -174,12 +214,12 @@ export default function App() {
             <Routes>
               <Route path="/" element={
                 <Overview fleet={fleet} solar={solar} summary={summary} loading={loading} demoMode={demoMode}
-                          onNavigateToAircraft={handleNavigateToAircraft} />
+                          onNavigateToAircraft={handleNavigateToAircraft} nmdbData={nmdbData} />
               } />
               <Route path="/map" element={
                 <FleetMap fleet={fleet} solar={solar} selectedCallsign={selectedCallsign}
                           selectedAircraft={selectedAircraft} onSelect={handleSelectAircraft}
-                          loading={loading} dataVersion={dataVersion} demoMode={demoMode} />
+                          loading={loading} dataVersion={dataVersion} demoMode={demoMode} nmdbData={nmdbData} />
               } />
               <Route path="/fleet" element={
                 <FleetTable fleet={fleet} loading={loading} onNavigateToAircraft={handleNavigateToAircraft} />

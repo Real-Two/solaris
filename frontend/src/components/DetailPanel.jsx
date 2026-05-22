@@ -1,6 +1,7 @@
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useMemo } from 'react';
 import { tierColor, displayScore } from '../api';
-
+import RiskAssessment from './RiskAssessment';
+import { assessFlightDecision } from '../services/decisionEngine';
 // ─── Risk Score Gauge (SVG Arc) ───
 function RiskGauge({ score, tier }) {
   const color = tierColor(tier);
@@ -152,6 +153,11 @@ export default function DetailPanel({ aircraft }) {
   const showDeviations = aircraft?.tier === 'AMBER' || aircraft?.tier === 'RED' || aircraft?.tier === 'CRITICAL';
   const showAcars = aircraft?.tier === 'RED' || aircraft?.tier === 'CRITICAL';
 
+  const decision = useMemo(() => {
+      if (!aircraft || aircraft.risk_score === undefined) return null;
+      return assessFlightDecision(aircraft, { score: aircraft.risk_score });
+  }, [aircraft]);
+
   return (
     <div
       className="shrink-0 flex flex-col border-l border-[rgba(255,255,255,0.05)] bg-[rgba(6,11,40,0.4)] backdrop-blur-3xl overflow-hidden"
@@ -180,7 +186,7 @@ export default function DetailPanel({ aircraft }) {
               {aircraft.callsign}
             </div>
             <div className="text-[13px] text-[#a0aec0] font-mono mt-1">
-              {aircraft.origin} → {aircraft.dest}
+              {aircraft.origin || 'UNK'} → {aircraft.dest || 'UNK'}
             </div>
             <div className="flex gap-4 mt-2 text-[11px] font-mono text-[#a0aec0]">
               <span>{Math.abs(aircraft.lat).toFixed(2)}°{aircraft.lat >= 0 ? 'N' : 'S'}, {Math.abs(aircraft.lon).toFixed(2)}°{aircraft.lon >= 0 ? 'E' : 'W'}</span>
@@ -206,8 +212,13 @@ export default function DetailPanel({ aircraft }) {
             <FluxBar flux={aircraft.corrected_flux || 0} />
           </div>
 
-          {/* Deviation Options */}
-          {showDeviations && aircraft.deviations && aircraft.deviations.length > 0 && (
+          {/* Risk Assessment Decision Engine */}
+          {decision && (
+              <RiskAssessment flight={aircraft} seuRisk={{ score: aircraft.risk_score }} decision={decision} />
+          )}
+
+          {/* Legacy Deviation Options (for Demo mode) */}
+          {!decision && showDeviations && aircraft.deviations && aircraft.deviations.length > 0 && (
             <div>
               <div className="text-[10px] tracking-[0.12em] text-[#a0aec0] uppercase font-semibold mb-2">
                 Recommended Actions

@@ -92,7 +92,7 @@ export default function FleetTable({ fleet, loading, onNavigateToAircraft }) {
                   hover:bg-[rgba(255,255,255,0.02)] cursor-pointer transition-colors"
                 onClick={() => onNavigateToAircraft(ac.callsign)}>
                 <span className="font-mono text-[13px] font-bold text-white">{ac.callsign}</span>
-                <span className="text-[12px] text-[#a0aec0] font-mono">{ac.origin} → {ac.dest}</span>
+                <span className="text-[12px] text-[#a0aec0] font-mono">{ac.origin || 'UNK'} → {ac.dest || 'UNK'}</span>
                 <span className="text-[11px] text-[#a0aec0] font-mono">
                   {Math.abs(ac.lat).toFixed(1)}°{ac.lat >= 0 ? 'N' : 'S'} {Math.abs(ac.lon).toFixed(1)}°{ac.lon >= 0 ? 'E' : 'W'}
                 </span>

@@ -1,27 +1,14 @@
-const API_BASE = 'http://localhost:8000';
+// Base API functions removed - now using src/services/liveApi.js
 
-export async function fetchSolar() {
-  const res = await fetch(`${API_BASE}/solar`);
-  if (!res.ok) throw new Error('Solar fetch failed');
-  return res.json();
+export function metersToFlightLevel(meters) {
+  return Math.round((meters * 3.28084) / 100);
 }
 
-export async function fetchFleet() {
-  const res = await fetch(`${API_BASE}/fleet`);
-  if (!res.ok) throw new Error('Fleet fetch failed');
-  return res.json();
-}
-
-export async function fetchSummary() {
-  const res = await fetch(`${API_BASE}/summary`);
-  if (!res.ok) throw new Error('Summary fetch failed');
-  return res.json();
-}
-
-export async function fetchAircraft(callsign) {
-  const res = await fetch(`${API_BASE}/fleet/${callsign}`);
-  if (!res.ok) throw new Error('Aircraft fetch failed');
-  return res.json();
+export function deriveSolarAlertLevel(protonFlux) {
+  if (protonFlux >= 1000) return 'CRITICAL';
+  if (protonFlux >= 100) return 'RED';
+  if (protonFlux >= 10) return 'AMBER';
+  return 'GREEN';
 }
 
 export function tierColor(tier) {

@@ -220,7 +220,7 @@ export default function Overview({ fleet, solar, summary, loading, demoMode, onN
                     </div>
                     <div>
                       <div className="font-mono text-[14px] font-bold text-white">{ac.callsign}</div>
-                      <div className="text-[11px] text-[#a0aec0] font-mono">{ac.origin} → {ac.dest}</div>
+                      <div className="text-[11px] text-[#a0aec0] font-mono">{ac.origin || 'UNK'} → {ac.dest || 'UNK'}</div>
                     </div>
                   </div>
                   

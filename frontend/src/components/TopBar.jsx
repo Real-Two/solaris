@@ -48,8 +48,23 @@ export default function TopBar({ solar, fetching, isStale, demoMode, onToggleDem
         </span>
       </div>
 
-      {/* Center: Solar Metrics */}
+      {/* Center: Solar Metrics & API Status */}
       <div className="flex items-center gap-6 glass-card px-6 py-2 border-0 shadow-none">
+        {/* API Status Indicators */}
+        <div className="flex items-center gap-3 border-r border-white/10 pr-6 mr-2 hidden lg:flex">
+          <div className="flex items-center gap-1.5" title="NOAA SWPC API">
+            <div className={`w-1.5 h-1.5 rounded-full ${apiStatus?.noaa === 'ok' ? 'bg-[#00ff88]' : apiStatus?.noaa === 'error' ? 'bg-[#ff4444]' : 'bg-[#a0aec0]'}`} />
+            <span className="text-[9px] font-bold text-[#a0aec0] tracking-wider uppercase">NOAA</span>
+          </div>
+          <div className="flex items-center gap-1.5" title="NMDB Network">
+            <div className={`w-1.5 h-1.5 rounded-full ${apiStatus?.nmdb === 'ok' ? 'bg-[#00ff88]' : apiStatus?.nmdb === 'error' ? 'bg-[#ff4444]' : 'bg-[#a0aec0]'}`} />
+            <span className="text-[9px] font-bold text-[#a0aec0] tracking-wider uppercase">NMDB</span>
+          </div>
+          <div className="flex items-center gap-1.5" title="OpenSky Network">
+            <div className={`w-1.5 h-1.5 rounded-full ${apiStatus?.opensky === 'ok' ? 'bg-[#00ff88]' : apiStatus?.opensky === 'error' ? 'bg-[#ff4444]' : 'bg-[#a0aec0]'}`} />
+            <span className="text-[9px] font-bold text-[#a0aec0] tracking-wider uppercase">OPSKY</span>
+          </div>
+        </div>
         {fetching && <div className="spin-loader" />}
 
         <div className="flex items-center gap-2">
