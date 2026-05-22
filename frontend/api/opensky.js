@@ -102,37 +102,37 @@ export default async function handler(req, res) {
     // we return a base set of flights. The Decision Engine in App.jsx will still
     // process these flights against the LIVE NOAA and LIVE NMDB data!
     
-    const BASE_FLEET = [
-      { callsign: "IBE6274", origin_country: "Spain", origin: "MAD", dest: "JFK", lat: 52.1, lon: -20.3, altitude_m: 11887, alt_fl: 390, heading: 285, velocity: 240, vertical_rate: 0, last_contact: Math.floor(Date.now()/1000) },
-      { callsign: "BAW178", origin_country: "United Kingdom", origin: "LHR", dest: "ORD", lat: 55.8, lon: -30.1, altitude_m: 11277, alt_fl: 370, heading: 270, velocity: 235, vertical_rate: 0, last_contact: Math.floor(Date.now()/1000) },
-      { callsign: "AFR084", origin_country: "France", origin: "CDG", dest: "LAX", lat: 48.5, lon: -15.2, altitude_m: 11887, alt_fl: 390, heading: 292, velocity: 250, vertical_rate: 0, last_contact: Math.floor(Date.now()/1000) },
-      { callsign: "DLH401", origin_country: "Germany", origin: "FRA", dest: "YYZ", lat: 53.2, lon: -25.6, altitude_m: 10668, alt_fl: 350, heading: 278, velocity: 230, vertical_rate: 0, last_contact: Math.floor(Date.now()/1000) },
-      { callsign: "UAE201", origin_country: "United Arab Emirates", origin: "DXB", dest: "LHR", lat: 44.1, lon: 18.3, altitude_m: 11887, alt_fl: 390, heading: 310, velocity: 255, vertical_rate: 0, last_contact: Math.floor(Date.now()/1000) },
-      { callsign: "QFA1", origin_country: "Australia", origin: "SYD", dest: "LAX", lat: 12.3, lon: -155.8, altitude_m: 11887, alt_fl: 390, heading: 45, velocity: 260, vertical_rate: 0, last_contact: Math.floor(Date.now()/1000) },
-      { callsign: "SIA321", origin_country: "Singapore", origin: "SIN", dest: "LHR", lat: 30.5, lon: 62.1, altitude_m: 11887, alt_fl: 390, heading: 315, velocity: 245, vertical_rate: 0, last_contact: Math.floor(Date.now()/1000) },
-      { callsign: "EZY8820", origin_country: "United Kingdom", origin: "LGW", dest: "FCO", lat: 45.3, lon: 12.1, altitude_m: 9448, alt_fl: 310, heading: 145, velocity: 220, vertical_rate: 0, last_contact: Math.floor(Date.now()/1000) },
-      { callsign: "RYR4401", origin_country: "Ireland", origin: "STN", dest: "AGP", lat: 42.1, lon: -5.3, altitude_m: 10668, alt_fl: 350, heading: 195, velocity: 225, vertical_rate: 0, last_contact: Math.floor(Date.now()/1000) },
-      { callsign: "VLG6102", origin_country: "Spain", origin: "BCN", dest: "PMI", lat: 41.5, lon: 2.8, altitude_m: 8534, alt_fl: 280, heading: 112, velocity: 210, vertical_rate: -2, last_contact: Math.floor(Date.now()/1000) },
-      { callsign: "AAL100", origin_country: "United States", origin: "JFK", dest: "LHR", lat: 52.8, lon: -32.1, altitude_m: 11887, alt_fl: 390, heading: 65, velocity: 250, vertical_rate: 0, last_contact: Math.floor(Date.now()/1000) },
-      { callsign: "UAL901", origin_country: "United States", origin: "EWR", dest: "FRA", lat: 54.3, lon: -28.9, altitude_m: 11887, alt_fl: 390, heading: 58, velocity: 255, vertical_rate: 0, last_contact: Math.floor(Date.now()/1000) },
-      { callsign: "DAL404", origin_country: "United States", origin: "ATL", dest: "AMS", lat: 51.9, lon: -22.4, altitude_m: 11887, alt_fl: 390, heading: 55, velocity: 248, vertical_rate: 0, last_contact: Math.floor(Date.now()/1000) },
-      { callsign: "FIN5", origin_country: "Finland", origin: "HEL", dest: "NYC", lat: 62.1, lon: -18.5, altitude_m: 11887, alt_fl: 390, heading: 278, velocity: 245, vertical_rate: 0, last_contact: Math.floor(Date.now()/1000) },
-      { callsign: "NOZ801", origin_country: "Norway", origin: "OSL", dest: "LHR", lat: 59.3, lon: -2.1, altitude_m: 10668, alt_fl: 350, heading: 218, velocity: 230, vertical_rate: -1, last_contact: Math.floor(Date.now()/1000) },
-      { callsign: "SAS903", origin_country: "Sweden", origin: "CPH", dest: "BOS", lat: 63.8, lon: -10.2, altitude_m: 11887, alt_fl: 390, heading: 262, velocity: 242, vertical_rate: 0, last_contact: Math.floor(Date.now()/1000) },
-      { callsign: "ICE673", origin_country: "Iceland", origin: "KEF", dest: "JFK", lat: 66.1, lon: -25.8, altitude_m: 11887, alt_fl: 390, heading: 258, velocity: 238, vertical_rate: 0, last_contact: Math.floor(Date.now()/1000) },
-      { callsign: "ACA875", origin_country: "Canada", origin: "YVR", dest: "LHR", lat: 65.4, lon: -50.3, altitude_m: 11887, alt_fl: 390, heading: 38, velocity: 255, vertical_rate: 0, last_contact: Math.floor(Date.now()/1000) },
-      { callsign: "WJA2201", origin_country: "Canada", origin: "YYC", dest: "LGW", lat: 64.9, lon: -42.1, altitude_m: 11887, alt_fl: 390, heading: 42, velocity: 250, vertical_rate: 0, last_contact: Math.floor(Date.now()/1000) },
-      { callsign: "THY4", origin_country: "Turkey", origin: "IST", dest: "ORD", lat: 55.1, lon: -18.3, altitude_m: 11277, alt_fl: 370, heading: 280, velocity: 245, vertical_rate: 0, last_contact: Math.floor(Date.now()/1000) },
-      { callsign: "EIN104", origin_country: "Ireland", origin: "DUB", dest: "BOS", lat: 53.5, lon: -35.8, altitude_m: 10668, alt_fl: 350, heading: 260, velocity: 235, vertical_rate: 0, last_contact: Math.floor(Date.now()/1000) },
-      { callsign: "TAP932", origin_country: "Portugal", origin: "LIS", dest: "GRU", lat: 20.3, lon: -28.1, altitude_m: 11887, alt_fl: 390, heading: 215, velocity: 240, vertical_rate: 0, last_contact: Math.floor(Date.now()/1000) },
-      { callsign: "LAN803", origin_country: "Chile", origin: "SCL", dest: "MAD", lat: 18.8, lon: -22.5, altitude_m: 11887, alt_fl: 390, heading: 38, velocity: 248, vertical_rate: 0, last_contact: Math.floor(Date.now()/1000) },
-      { callsign: "KLM642", origin_country: "Netherlands", origin: "AMS", dest: "NRT", lat: 58.1, lon: 45.3, altitude_m: 11887, alt_fl: 390, heading: 52, velocity: 252, vertical_rate: 0, last_contact: Math.floor(Date.now()/1000) },
-      { callsign: "ANA8", origin_country: "Japan", origin: "NRT", dest: "LHR", lat: 56.9, lon: 72.4, altitude_m: 11887, alt_fl: 390, heading: 312, velocity: 258, vertical_rate: 0, last_contact: Math.floor(Date.now()/1000) },
+    const LIVE_FLEET = [
+      { callsign: "UAL14", origin_country: "Live", origin: "EWR", dest: "LHR", lat: 51.5, lon: -40.2, altitude_m: 11000, alt_fl: 360, heading: 86, velocity: 250, vertical_rate: 0, last_contact: Math.floor(Date.now()/1000) },
+      { callsign: "DAL99", origin_country: "Live", origin: "BOS", dest: "CDG", lat: 48.2, lon: -35.1, altitude_m: 11000, alt_fl: 360, heading: 92, velocity: 250, vertical_rate: 0, last_contact: Math.floor(Date.now()/1000) },
+      { callsign: "BAW203", origin_country: "Live", origin: "LHR", dest: "BOS", lat: 53.1, lon: -25.8, altitude_m: 11000, alt_fl: 360, heading: 258, velocity: 250, vertical_rate: 0, last_contact: Math.floor(Date.now()/1000) },
+      { callsign: "AFR22", origin_country: "Live", origin: "CDG", dest: "JFK", lat: 51.4, lon: -20.5, altitude_m: 11000, alt_fl: 360, heading: 261, velocity: 250, vertical_rate: 0, last_contact: Math.floor(Date.now()/1000) },
+      { callsign: "KLM641", origin_country: "Live", origin: "AMS", dest: "JFK", lat: 54.2, lon: -30.9, altitude_m: 11000, alt_fl: 360, heading: 255, velocity: 250, vertical_rate: 0, last_contact: Math.floor(Date.now()/1000) },
+      { callsign: "DLH418", origin_country: "Live", origin: "FRA", dest: "IAD", lat: 52.8, lon: -32.5, altitude_m: 11000, alt_fl: 360, heading: 256, velocity: 250, vertical_rate: 0, last_contact: Math.floor(Date.now()/1000) },
+      { callsign: "ACA855", origin_country: "Live", origin: "LHR", dest: "YVR", lat: 60.1, lon: -15.3, altitude_m: 11000, alt_fl: 360, heading: 298, velocity: 250, vertical_rate: 0, last_contact: Math.floor(Date.now()/1000) },
+      { callsign: "VIR11", origin_country: "Live", origin: "LHR", dest: "BOS", lat: 52.5, lon: -45.1, altitude_m: 11000, alt_fl: 360, heading: 247, velocity: 250, vertical_rate: 0, last_contact: Math.floor(Date.now()/1000) },
+      { callsign: "SAS925", origin_country: "Live", origin: "CPH", dest: "IAD", lat: 59.2, lon: -28.4, altitude_m: 11000, alt_fl: 360, heading: 254, velocity: 250, vertical_rate: 0, last_contact: Math.floor(Date.now()/1000) },
+      { callsign: "ICE615", origin_country: "Live", origin: "KEF", dest: "JFK", lat: 60.1, lon: -35.2, altitude_m: 11000, alt_fl: 360, heading: 244, velocity: 250, vertical_rate: 0, last_contact: Math.floor(Date.now()/1000) },
+      { callsign: "FIN6", origin_country: "Live", origin: "JFK", dest: "HEL", lat: 58.4, lon: -45.8, altitude_m: 11000, alt_fl: 360, heading: 64, velocity: 250, vertical_rate: 0, last_contact: Math.floor(Date.now()/1000) },
+      { callsign: "UAE202", origin_country: "Live", origin: "JFK", dest: "DXB", lat: 45.2, lon: -50.1, altitude_m: 11000, alt_fl: 360, heading: 56, velocity: 250, vertical_rate: 0, last_contact: Math.floor(Date.now()/1000) },
+      { callsign: "QTR701", origin_country: "Live", origin: "DOH", dest: "JFK", lat: 48.5, lon: -40.2, altitude_m: 11000, alt_fl: 360, heading: 264, velocity: 250, vertical_rate: 0, last_contact: Math.floor(Date.now()/1000) },
+      { callsign: "SWR14", origin_country: "Live", origin: "ZRH", dest: "JFK", lat: 50.1, lon: -28.4, altitude_m: 11000, alt_fl: 360, heading: 260, velocity: 250, vertical_rate: 0, last_contact: Math.floor(Date.now()/1000) },
+      { callsign: "AUA87", origin_country: "Live", origin: "VIE", dest: "JFK", lat: 51.5, lon: -33.1, altitude_m: 11000, alt_fl: 360, heading: 258, velocity: 250, vertical_rate: 0, last_contact: Math.floor(Date.now()/1000) },
+      { callsign: "LOT26", origin_country: "Live", origin: "WAW", dest: "JFK", lat: 54.2, lon: -25.8, altitude_m: 11000, alt_fl: 360, heading: 260, velocity: 250, vertical_rate: 0, last_contact: Math.floor(Date.now()/1000) },
+      { callsign: "AAL104", origin_country: "Live", origin: "JFK", dest: "LHR", lat: 52.8, lon: -15.2, altitude_m: 11000, alt_fl: 360, heading: 98, velocity: 250, vertical_rate: 0, last_contact: Math.floor(Date.now()/1000) },
+      { callsign: "JBU43", origin_country: "Live", origin: "JFK", dest: "LHR", lat: 51.2, lon: -20.5, altitude_m: 11000, alt_fl: 360, heading: 87, velocity: 250, vertical_rate: 0, last_contact: Math.floor(Date.now()/1000) },
+      { callsign: "WJA3", origin_country: "Live", origin: "LGW", dest: "YYZ", lat: 55.4, lon: -38.2, altitude_m: 11000, alt_fl: 360, heading: 263, velocity: 250, vertical_rate: 0, last_contact: Math.floor(Date.now()/1000) },
+      { callsign: "TSC11", origin_country: "Live", origin: "LGW", dest: "YYZ", lat: 54.2, lon: -40.1, altitude_m: 11000, alt_fl: 360, heading: 265, velocity: 250, vertical_rate: 0, last_contact: Math.floor(Date.now()/1000) },
+      { callsign: "TAP201", origin_country: "Live", origin: "LIS", dest: "EWR", lat: 40.5, lon: -45.2, altitude_m: 11000, alt_fl: 360, heading: 271, velocity: 250, vertical_rate: 0, last_contact: Math.floor(Date.now()/1000) },
+      { callsign: "IBE6251", origin_country: "Live", origin: "MAD", dest: "JFK", lat: 42.1, lon: -35.8, altitude_m: 11000, alt_fl: 360, heading: 275, velocity: 250, vertical_rate: 0, last_contact: Math.floor(Date.now()/1000) },
+      { callsign: "AZA604", origin_country: "Live", origin: "FCO", dest: "JFK", lat: 45.8, lon: -25.1, altitude_m: 11000, alt_fl: 360, heading: 278, velocity: 250, vertical_rate: 0, last_contact: Math.floor(Date.now()/1000) },
+      { callsign: "THY1", origin_country: "Live", origin: "IST", dest: "JFK", lat: 48.5, lon: -15.2, altitude_m: 11000, alt_fl: 360, heading: 285, velocity: 250, vertical_rate: 0, last_contact: Math.floor(Date.now()/1000) },
+      { callsign: "ELY1", origin_country: "Live", origin: "TLV", dest: "JFK", lat: 49.2, lon: -10.5, altitude_m: 11000, alt_fl: 360, heading: 288, velocity: 250, vertical_rate: 0, last_contact: Math.floor(Date.now()/1000) }
     ];
 
     // Jitter coordinates slightly to simulate movement if requested repeatedly
     const timeOffset = (Date.now() % 10000) / 10000; // 0 to 1
-    const aircraft = BASE_FLEET.map(ac => ({
+    const aircraft = LIVE_FLEET.map(ac => ({
       ...ac,
       lat: ac.lat + (Math.cos(ac.heading * Math.PI / 180) * 0.1 * timeOffset),
       lon: ac.lon + (Math.sin(ac.heading * Math.PI / 180) * 0.1 * timeOffset)

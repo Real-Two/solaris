@@ -207,21 +207,15 @@ function RouteOverlay({ selectedAircraft, demoMode }) {
       const originCoords = AIRPORT_COORDS[selectedAircraft.origin];
       
       if (destCoords) {
-        if (originCoords) {
-          // Draw a single smooth great circle from Origin to Dest
-          const fullRoute = greatCircle(originCoords[0], originCoords[1], destCoords[0], destCoords[1]);
-          const current = L.polyline(fullRoute, { color: 'white', opacity: 0.4, weight: 1, dashArray: '6, 6' }).addTo(map);
-          routeLayersRef.current.push(current);
-        } else {
-          // Fallback if no origin
-          const current = L.polyline([pos, destCoords], { color: 'white', opacity: 0.4, weight: 1, dashArray: '6, 6' }).addTo(map);
-          routeLayersRef.current.push(current);
-        }
+        // Draw the remaining route from current pos to Dest
+        const remainingRoute = greatCircle(pos[0], pos[1], destCoords[0], destCoords[1]);
+        const current = L.polyline(remainingRoute, { color: 'white', opacity: 0.4, weight: 1, dashArray: '6, 6' }).addTo(map);
+        routeLayersRef.current.push(current);
 
         if (decision.decision === 'DEVIATE' || selectedAircraft.deviations?.length > 0) {
           // Deviation is a reroute from current pos to a mid point to destination to avoid radiation
           // Calculate a smooth quadratic bezier curve by shifting the control point equatorward
-          const midLat = (pos[0] + destCoords[0]) / 2 - 10; // pull curve further south
+          const midLat = (pos[0] + destCoords[0]) / 2 - 2; // slight shift south
           const midLon = (pos[1] + destCoords[1]) / 2;
           
           const deviationRoute = bezierCurve2(pos, [midLat, midLon], destCoords);
