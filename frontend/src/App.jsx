@@ -42,10 +42,11 @@ export default function App() {
     localStorage.setItem('solaris_demo_mode', JSON.stringify(demoMode));
   }, [demoMode]);
 
-  const refreshAll = useCallback(async () => {
+  const refreshAll = useCallback(async (overrideMode) => {
+    const isDemo = overrideMode !== undefined ? overrideMode : demoMode;
     setFetching(true);
     try {
-      if (demoMode) {
+      if (isDemo) {
         // Demo mode: use existing demo data (unchanged)
         const liveFleet = liveDataRef.current.fleet || null;
         const demoFleet = applyDemoOverrides(liveFleet);
@@ -90,6 +91,9 @@ export default function App() {
             const updated = enrichedFleet.find(a => a.callsign === selectedAircraft.callsign);
             if (updated) setSelectedAircraft(updated);
           }
+        } else {
+          // If flight data failed to load, clear the fleet to prevent showing stale demo data
+          setFleet({ aircraft: [], count: 0 });
         }
 
         // Summary (computed from live data)
@@ -165,7 +169,7 @@ export default function App() {
         // Switching to live mode — clear demo data, trigger refresh
         setSelectedAircraft(null);
         setLoading(true);
-        setTimeout(() => refreshAll(), 100);
+        setTimeout(() => refreshAll(false), 100);
       }
       return next;
     });
