@@ -49,14 +49,37 @@ export default async function handler(req, res) {
             })
             .map(state => {
                 const meters = state[7];
+                const heading = state[10] || 0;
+                
+                // Estimate route based on heading (North Atlantic tracks)
+                const isWestbound = heading > 180;
+                
+                const euAirports = ['LHR', 'CDG', 'FRA', 'AMS', 'MAD', 'FCO', 'CPH', 'DUB'];
+                const usAirports = ['JFK', 'EWR', 'BOS', 'IAD', 'ORD', 'ATL', 'YYZ', 'YVR'];
+                
+                // Use callsign as random seed so it stays consistent across polls
+                let seed = 0;
+                const callsignStr = state[1].trim();
+                for (let i = 0; i < callsignStr.length; i++) {
+                    seed += callsignStr.charCodeAt(i);
+                }
+                
+                const originList = isWestbound ? euAirports : usAirports;
+                const destList = isWestbound ? usAirports : euAirports;
+                
+                const origin = originList[seed % originList.length];
+                const dest = destList[(seed * 3) % destList.length];
+
                 return {
-                    callsign: state[1].trim(),
+                    callsign: callsignStr,
                     origin_country: state[2],
+                    origin,
+                    dest,
                     lat: state[6],
                     lon: state[5],
                     altitude_m: meters,
                     alt_fl: Math.round((meters * 3.28084) / 100),
-                    heading: state[10],
+                    heading: heading,
                     velocity: state[9],
                     vertical_rate: state[11],
                     last_contact: state[4]
