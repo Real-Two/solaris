@@ -10,6 +10,37 @@ import {
 import L from 'leaflet';
 import { assessFlightDecision } from '../services/decisionEngine';
 
+// --- Simple Great Circle Interpolation ---
+function greatCircle(lat1, lon1, lat2, lon2, points = 30) {
+  const toRad = x => x * Math.PI / 180;
+  const toDeg = x => x * 180 / Math.PI;
+  
+  const phi1 = toRad(lat1), lam1 = toRad(lon1);
+  const phi2 = toRad(lat2), lam2 = toRad(lon2);
+  
+  const dLam = lam2 - lam1;
+  const sinPhi1 = Math.sin(phi1), cosPhi1 = Math.cos(phi1);
+  const sinPhi2 = Math.sin(phi2), cosPhi2 = Math.cos(phi2);
+  
+  // Central angle
+  const deltaSigma = Math.acos(sinPhi1 * sinPhi2 + cosPhi1 * cosPhi2 * Math.cos(dLam));
+  if (deltaSigma === 0) return [[lat1, lon1]];
+  
+  const route = [];
+  for (let i = 0; i <= points; i++) {
+    const f = i / points;
+    const a = Math.sin((1 - f) * deltaSigma) / Math.sin(deltaSigma);
+    const b = Math.sin(f * deltaSigma) / Math.sin(deltaSigma);
+    const x = a * cosPhi1 * Math.cos(lam1) + b * cosPhi2 * Math.cos(lam2);
+    const y = a * cosPhi1 * Math.sin(lam1) + b * cosPhi2 * Math.sin(lam2);
+    const z = a * sinPhi1 + b * sinPhi2;
+    const phi = Math.atan2(z, Math.sqrt(Math.pow(x, 2) + Math.pow(y, 2)));
+    const lam = Math.atan2(y, x);
+    route.push([toDeg(phi), toDeg(lam)]);
+  }
+  return route;
+}
+
 // ─── Exact aircraft DivIcon from spec ───
 function createPlaneIcon(tier, heading) {
   const colors = { GREEN: '#00ff88', AMBER: '#ffaa00', RED: '#ff4444', CRITICAL: '#cc00ff' };
@@ -145,18 +176,26 @@ function RouteOverlay({ selectedAircraft, demoMode }) {
       const originCoords = AIRPORT_COORDS[selectedAircraft.origin];
       
       if (destCoords) {
-        let current;
         if (originCoords) {
-          current = L.polyline([originCoords, pos, destCoords], { color: 'white', opacity: 0.4, weight: 1, dashArray: '6, 6' }).addTo(map);
+          // Draw a single smooth great circle from Origin to Dest
+          const fullRoute = greatCircle(originCoords[0], originCoords[1], destCoords[0], destCoords[1]);
+          const current = L.polyline(fullRoute, { color: 'white', opacity: 0.4, weight: 1, dashArray: '6, 6' }).addTo(map);
+          routeLayersRef.current.push(current);
         } else {
-          current = L.polyline([pos, destCoords], { color: 'white', opacity: 0.4, weight: 1, dashArray: '6, 6' }).addTo(map);
+          // Fallback if no origin
+          const current = L.polyline([pos, destCoords], { color: 'white', opacity: 0.4, weight: 1, dashArray: '6, 6' }).addTo(map);
+          routeLayersRef.current.push(current);
         }
-        routeLayersRef.current.push(current);
 
         if (decision.decision === 'DEVIATE' || selectedAircraft.deviations?.length > 0) {
-          const midLat = (pos[0] + destCoords[0]) / 2 - 3;
+          // Deviation is a reroute from current pos to a mid point to destination to avoid radiation
+          // Calculate a simple deviated great circle by shifting the mid-point equatorward
+          const midLat = (pos[0] + destCoords[0]) / 2 - 5; // shift south
           const midLon = (pos[1] + destCoords[1]) / 2;
-          const deviation = L.polyline([pos, [midLat, midLon], destCoords], { color: '#0075ff', opacity: 0.7, weight: 2 }).addTo(map);
+          const curve1 = greatCircle(pos[0], pos[1], midLat, midLon, 15);
+          const curve2 = greatCircle(midLat, midLon, destCoords[0], destCoords[1], 15);
+          const deviationRoute = [...curve1, ...curve2];
+          const deviation = L.polyline(deviationRoute, { color: '#0075ff', opacity: 0.7, weight: 2 }).addTo(map);
           routeLayersRef.current.push(deviation);
         }
       }
